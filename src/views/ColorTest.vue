@@ -6,25 +6,11 @@
     </div>
 
     <div class="test-content">
-      <div class="mode-selection" v-if="!selectedMode">
-        <div class="option manual" @click="selectMode('manual')">
-          <h2>手动选择</h2>
-          <p>手动选择最接近的肤色</p>
-        </div>
-        <div class="option auto" @click="selectMode('auto')">
-          <h2>照片检测</h2>
-          <p>上传照片自动分析肤色</p>
-        </div>
-      </div>
-
-      <div v-else class="test-area">
+      <div class="test-area">
         <div class="test-container">
-          <div class="face-map-container" v-if="selectedMode === 'manual'">
-            <FaceRegionMap />
-          </div>
           <div class="color-picker-container">
             <ColorPickerPanel
-              :initialMode="selectedMode === 'auto' ? 'photo' : 'manual'"
+              initialMode="photo"
             />
           </div>
         </div>
@@ -37,21 +23,8 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import ColorPickerPanel from '../components/ColorTest/ColorPickerPanel.vue'
-import FaceRegionMap from '../components/ColorTest/FaceRegionMap.vue'
 
 const route = useRoute()
-const selectedMode = ref('')
-
-// 从路由参数获取初始模式
-onMounted(() => {
-  if (route.query.mode) {
-    selectMode(route.query.mode)
-  }
-})
-
-const selectMode = (mode) => {
-  selectedMode.value = mode
-}
 </script>
 
 <style scoped>
@@ -88,29 +61,6 @@ h1 {
   overflow: hidden;
 }
 
-.mode-selection {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  padding: 2rem;
-}
-
-.option {
-  padding: 2rem;
-  border-radius: var(--border-radius);
-  background-color: var(--color-surface);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: center;
-  min-width: 200px;
-}
-
-.option:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-}
-
 .test-area {
   flex: 1;
   display: flex;
@@ -127,28 +77,12 @@ h1 {
   padding: 1rem;
 }
 
-.face-map-container {
-  flex-shrink: 0;
-  margin-bottom: 2rem;
-}
-
 .color-picker-container {
   flex: 1;
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .mode-selection {
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .option {
-    width: 100%;
-    max-width: 300px;
-  }
-
   .test-container {
     padding: 0.5rem;
   }
@@ -161,13 +95,8 @@ h1 {
     gap: 2rem;
   }
 
-  .face-map-container {
-    margin-bottom: 0;
-    width: 40%;
-  }
-
   .color-picker-container {
-    width: 60%;
+    width: 100%;
   }
 }
 </style>

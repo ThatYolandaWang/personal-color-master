@@ -1,178 +1,8 @@
 <template>
   <div class="color-picker-panel">
-    <!-- 添加检测模式选择 -->
-    <div v-if="!showReport" class="detection-mode-switch">
-      <button 
-        :class="['mode-btn', { active: detectionMode === 'manual' }]" 
-        @click="detectionMode = 'manual'"
-      >
-        手动选择
-      </button>
-      <button 
-        :class="['mode-btn', { active: detectionMode === 'photo' }]" 
-        @click="detectionMode = 'photo'"
-      >
-        照片检测
-      </button>
-    </div>
-
-    <!-- 照片检测模式 -->
-    <div v-if="!showReport && detectionMode === 'photo'" class="photo-detection-container">
+    <!-- 仅使用照片检测模式 -->
+    <div v-if="!showReport" class="photo-detection-container">
       <PhotoDetection @colorsDetected="applyDetectedColors" ref="photoDetection" />
-    </div>
-
-    <!-- 手动选择模式 -->
-    <div v-else-if="!showReport" class="color-pickers">
-      <!-- 前额颜色选择 -->
-      <div class="color-picker-item">
-        <label>前额</label>
-        <div class="picker-controls">
-          <select v-model="colors.forehead" class="preset-select">
-            <option value="">选择预设颜色</option>
-            <optgroup label="浅色">
-              <option value="#FFE4C4">象牙白</option>
-              <option value="#FFE5B4">杏仁白</option>
-              <option value="#FFDAB9">桃色</option>
-            </optgroup>
-            <optgroup label="中等">
-              <option value="#DEB887">实木色</option>
-              <option value="#D2B48C">褐棕色</option>
-              <option value="#BC8F8F">玫瑰褐</option>
-            </optgroup>
-            <optgroup label="深色">
-              <option value="#8B4513">马鞍棕</option>
-              <option value="#A0522D">赭色</option>
-              <option value="#6B4423">深褐</option>
-            </optgroup>
-          </select>
-          <input type="color" v-model="colors.forehead" class="color-input" :title="colors.forehead">
-        </div>
-      </div>
-
-      <!-- 脸颊颜色选择 -->
-      <div class="color-picker-item">
-        <label>脸颊</label>
-        <div class="picker-controls">
-          <select v-model="colors.cheeks" class="preset-select">
-            <option value="">选择预设颜色</option>
-            <optgroup label="浅色">
-              <option value="#FFE4E1">浅玫瑰</option>
-              <option value="#FFF0F5">淡紫红</option>
-              <option value="#FFE4C4">象牙白</option>
-            </optgroup>
-            <optgroup label="中等">
-              <option value="#DEB887">实木色</option>
-              <option value="#D2B48C">褐棕色</option>
-              <option value="#BC8F8F">玫瑰褐</option>
-            </optgroup>
-            <optgroup label="深色">
-              <option value="#8B4513">马鞍棕</option>
-              <option value="#A0522D">赭色</option>
-              <option value="#6B4423">深褐</option>
-            </optgroup>
-          </select>
-          <input type="color" v-model="colors.cheeks" class="color-input" :title="colors.cheeks">
-        </div>
-      </div>
-
-      <!-- 颈部颜色选择 -->
-      <div class="color-picker-item">
-        <label>颈部</label>
-        <div class="picker-controls">
-          <select v-model="colors.neck" class="preset-select">
-            <option value="">选择预设颜色</option>
-            <optgroup label="浅色">
-              <option value="#FFE4C4">象牙白</option>
-              <option value="#FFDAB9">桃色</option>
-              <option value="#F5DEB3">小麦色</option>
-            </optgroup>
-            <optgroup label="中等">
-              <option value="#DEB887">实木色</option>
-              <option value="#D2B48C">褐棕色</option>
-              <option value="#BC8F8F">玫瑰褐</option>
-            </optgroup>
-            <optgroup label="深色">
-              <option value="#8B4513">马鞍棕</option>
-              <option value="#A0522D">赭色</option>
-              <option value="#6B4423">深褐</option>
-            </optgroup>
-          </select>
-          <input type="color" v-model="colors.neck" class="color-input" :title="colors.neck">
-        </div>
-      </div>
-
-      <!-- 发色选择 -->
-      <div class="color-picker-item">
-        <label>发色</label>
-        <div class="picker-controls">
-          <select v-model="colors.hair" class="preset-select">
-            <option value="">选择预设颜色</option>
-            <optgroup label="黑色系">
-              <option value="#000000">纯黑</option>
-              <option value="#1C1C1C">碳黑</option>
-              <option value="#2F4F4F">深灰</option>
-            </optgroup>
-            <optgroup label="棕色系">
-              <option value="#8B4513">深棕</option>
-              <option value="#A0522D">红棕</option>
-              <option value="#6B4423">咖啡</option>
-            </optgroup>
-            <optgroup label="其他">
-              <option value="#CD853F">栗色</option>
-              <option value="#DEB887">浅棕</option>
-              <option value="#D2691E">巧克力色</option>
-            </optgroup>
-          </select>
-          <input type="color" v-model="colors.hair" class="color-input" :title="colors.hair">
-        </div>
-      </div>
-
-      <!-- 瞳色选择 -->
-      <div class="color-picker-item">
-        <label>瞳色</label>
-        <div class="picker-controls">
-          <select v-model="colors.eyes" class="preset-select">
-            <option value="">选择预设颜色</option>
-            <optgroup label="黑色系">
-              <option value="#000000">纯黑</option>
-              <option value="#1C1C1C">碳黑</option>
-              <option value="#2F4F4F">深灰</option>
-            </optgroup>
-            <optgroup label="棕色系">
-              <option value="#8B4513">深棕</option>
-              <option value="#A0522D">红棕</option>
-              <option value="#6B4423">咖啡</option>
-            </optgroup>
-          </select>
-          <input type="color" v-model="colors.eyes" class="color-input" :title="colors.eyes">
-        </div>
-      </div>
-
-      <!-- 唇色选择 -->
-      <div class="color-picker-item">
-        <label>唇色</label>
-        <div class="picker-controls">
-          <select v-model="colors.lips" class="preset-select">
-            <option value="">选择预设颜色</option>
-            <optgroup label="粉色系">
-              <option value="#FFB6C1">浅粉</option>
-              <option value="#FF69B4">粉红</option>
-              <option value="#DB7093">玫瑰粉</option>
-            </optgroup>
-            <optgroup label="红色系">
-              <option value="#DC143C">鲜红</option>
-              <option value="#CD5C5C">印度红</option>
-              <option value="#B22222">深红</option>
-            </optgroup>
-            <optgroup label="其他">
-              <option value="#FF8C69">珊瑚色</option>
-              <option value="#C71585">紫红</option>
-              <option value="#A52A2A">褐红</option>
-            </optgroup>
-          </select>
-          <input type="color" v-model="colors.lips" class="color-input" :title="colors.lips">
-        </div>
-      </div>
     </div>
 
     <div v-if="!showReport" class="actions">
@@ -204,18 +34,6 @@ import PhotoDetection from './PhotoDetection.vue'
 
 // 路由
 const router = useRouter()
-
-// 接收外部传入的初始模式
-const props = defineProps({
-  initialMode: {
-    type: String,
-    default: 'manual', // 默认为手动模式
-    validator: (value) => ['manual', 'photo'].includes(value)
-  }
-})
-
-// 检测模式：manual = 手动选择, photo = 照片检测
-const detectionMode = ref(props.initialMode)
 
 // 颜色数据
 const colors = ref({
@@ -256,9 +74,6 @@ const applyDetectedColors = (detectedColors) => {
   colors.value.neck = detectedColors.neck || colors.value.neck
   colors.value.lips = detectedColors.lips || colors.value.lips
   colors.value.hair = detectedColors.hair || colors.value.hair
-  
-  // 自动切换到手动模式以便查看和微调结果
-  detectionMode.value = 'manual'
   
   // 保存颜色数据到会话存储
   saveColorSelection()
@@ -360,89 +175,8 @@ const cancelReport = () => {
   flex-direction: column;
 }
 
-/* 检测模式切换 */
-.detection-mode-switch {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-  gap: 1rem;
-}
-
-.mode-btn {
-  padding: 10px 20px;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-background);
-  color: var(--color-text);
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.mode-btn.active {
-  background-color: var(--color-primary);
-  color: white;
-  border-color: var(--color-primary);
-}
-
-.mode-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
 .photo-detection-container {
   margin-bottom: 2rem;
-}
-
-.color-pickers {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.color-picker-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.picker-controls {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-label {
-  font-weight: 500;
-  color: var(--color-text);
-}
-
-.preset-select {
-  flex: 1;
-  padding: 0.5rem;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--color-border);
-  background-color: var(--color-surface);
-  color: var(--color-text);
-  font-family: inherit;
-}
-
-.color-input {
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: none;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-}
-
-.color-input::-webkit-color-swatch-wrapper {
-  padding: 0;
-}
-
-.color-input::-webkit-color-swatch {
-  border: none;
-  border-radius: var(--border-radius);
 }
 
 .actions {
@@ -480,20 +214,8 @@ label {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .color-pickers {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .color-picker-item {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .picker-controls {
-    flex: 1;
-    max-width: 200px;
+  .actions {
+    margin-top: 1rem;
   }
 }
 </style>

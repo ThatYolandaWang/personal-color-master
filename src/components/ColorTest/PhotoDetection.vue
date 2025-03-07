@@ -15,36 +15,45 @@
 
     <div v-if="imageUrl" class="photo-editor">
       <div class="editor-container" ref="editorContainer">
-        <!-- 照片展示区域 -->
-        <div 
-          class="image-container" 
-          :style="{ width: `${imageWidth}px`, height: `${imageHeight}px` }"
-        >
-          <img 
-            :src="imageUrl" 
-            alt="上传的照片" 
-            class="uploaded-image" 
-            ref="uploadedImage"
-          />
-          
-          <!-- 各面部区域的检测椭圆 -->
+        <!-- 照片展示区域，固定大小的容器 -->
+        <div class="fixed-container">
+          <!-- 可移动的图片容器 -->
           <div 
-            v-for="(region, key) in detectionRegions" 
-            :key="key"
-            class="detection-region"
-            :class="{ 'active': activeRegion === key }"
-            :style="{
-              width: `${region.width}px`,
-              height: `${region.height}px`,
-              left: `${region.x}px`,
-              top: `${region.y}px`,
-              backgroundColor: region.color,
-              borderColor: activeRegion === key ? '#00aaff' : 'rgba(255,255,255,0.5)'
+            class="image-container" 
+            :style="{ 
+              width: `${imageWidth}px`, 
+              height: `${imageHeight}px`,
+              transform: `translate(${imagePositionX}px, ${imagePositionY}px)`
             }"
-            @mousedown="startDrag($event, key)"
-            @click="setActiveRegion(key)"
+            @mousedown="startImageDrag"
+            :class="{ 'dragging': isImageDragging }"
           >
-            <span class="region-label">{{ region.label }}</span>
+            <img 
+              :src="imageUrl" 
+              alt="上传的照片" 
+              class="uploaded-image" 
+              ref="uploadedImage"
+            />
+            
+            <!-- 各面部区域的检测椭圆 -->
+            <div 
+              v-for="(region, key) in detectionRegions" 
+              :key="key"
+              class="detection-region"
+              :class="{ 'active': activeRegion === key }"
+              :style="{
+                width: `${region.width}px`,
+                height: `${region.height}px`,
+                left: `${region.x}px`,
+                top: `${region.y}px`,
+                backgroundColor: region.color,
+                borderColor: activeRegion === key ? '#00aaff' : 'rgba(255,255,255,0.5)'
+              }"
+              @mousedown.stop="startDrag($event, key)"
+              @click.stop="setActiveRegion(key)"
+            >
+              <span class="region-label">{{ region.label }}</span>
+            </div>
           </div>
         </div>
         
@@ -57,7 +66,7 @@
                 type="range" 
                 v-model="sizeScale" 
                 min="50" 
-                max="150" 
+                max="200" 
                 class="size-slider"
               />
               <span>{{ sizeScale }}%</span>
@@ -141,6 +150,11 @@ const editorContainer = ref(null);
 const imageWidth = ref(400);
 const imageHeight = ref(400);
 const sizeScale = ref(100);
+const imagePositionX = ref(0); // 图片X位置
+const imagePositionY = ref(0); // 图片Y位置
+const isImageDragging = ref(false); // 是否正在拖动图片
+const imageDragStartX = ref(0); // 图片拖动起始X坐标
+const imageDragStartY = ref(0); // 图片拖动起始Y坐标
 
 // 拖拽状态
 const isDragging = ref(false);
@@ -202,15 +216,32 @@ const detectionRegions = reactive({
 
 // 监听照片大小变化
 watch(sizeScale, (newValue) => {
-  const scale = newValue / 100;
-  imageWidth.value = 400 * scale;
-  imageHeight.value = 400 * scale;
+  const oldScale = imageWidth.value / 400;
+  const newScale = newValue / 100;
   
-  // 根据比例调整区域位置
+  // 计算新的尺寸
+  const newWidth = 400 * newScale;
+  const newHeight = (imageHeight.value / imageWidth.value) * newWidth;
+  
+  // 保持中心点位置不变
+  const widthDiff = newWidth - imageWidth.value;
+  const heightDiff = newHeight - imageHeight.value;
+  
+  // 调整图片位置，使缩放以中心点为基准
+  imagePositionX.value -= widthDiff / 2;
+  imagePositionY.value -= heightDiff / 2;
+  
+  // 更新图片尺寸
+  imageWidth.value = newWidth;
+  imageHeight.value = newHeight;
+  
+  // 调整区域大小和位置
   Object.keys(detectionRegions).forEach(key => {
     const region = detectionRegions[key];
-    region.x = (region.x / (400 * (sizeScale.value - newValue) / 100)) * (400 * scale);
-    region.y = (region.y / (400 * (sizeScale.value - newValue) / 100)) * (400 * scale);
+    region.x = (region.x / oldScale) * newScale;
+    region.y = (region.y / oldScale) * newScale;
+    region.width = (region.width / oldScale) * newScale;
+    region.height = (region.height / oldScale) * newScale;
   });
 });
 
@@ -235,23 +266,26 @@ const handleFileSelect = (event) => {
   reader.onload = (e) => {
     imageUrl.value = e.target.result;
     
-    // 重置区域颜色
+    // 重置区域颜色和图片位置
     Object.keys(detectionRegions).forEach(key => {
       detectionRegions[key].color = 'rgba(255, 255, 255, 0.5)';
     });
+    
+    imagePositionX.value = 0;
+    imagePositionY.value = 0;
     
     // 当图片加载完成后，调整大小并执行颜色检测
     setTimeout(() => {
       if (uploadedImage.value) {
         const img = uploadedImage.value;
-        const container = editorContainer.value;
         
-        // 保持图片在容器内并设置合适的默认大小
-        const maxWidth = container.clientWidth - 40;
-        const scale = Math.min(1, maxWidth / img.naturalWidth);
+        // 设置初始尺寸，保持原始宽高比
+        const originalRatio = img.naturalWidth / img.naturalHeight;
+        imageWidth.value = 400;
+        imageHeight.value = 400 / originalRatio;
         
-        imageWidth.value = img.naturalWidth * scale;
-        imageHeight.value = img.naturalHeight * scale;
+        // 重置缩放比例
+        sizeScale.value = 100;
         
         // 根据图片大小调整检测区域位置
         adjustRegionsPosition();
@@ -263,6 +297,47 @@ const handleFileSelect = (event) => {
   };
   
   reader.readAsDataURL(file);
+};
+
+// 开始拖动图片
+const startImageDrag = (event) => {
+  if (activeRegion.value) return; // 如果正在拖动区域，则不拖动图片
+  
+  isImageDragging.value = true;
+  
+  // 记录起始位置
+  imageDragStartX.value = event.clientX;
+  imageDragStartY.value = event.clientY;
+  
+  // 添加移动和结束拖拽的事件监听
+  document.addEventListener('mousemove', dragImage);
+  document.addEventListener('mouseup', stopImageDrag);
+  
+  // 防止事件冒泡
+  event.preventDefault();
+};
+
+// 拖动图片
+const dragImage = (event) => {
+  if (!isImageDragging.value) return;
+  
+  const dx = event.clientX - imageDragStartX.value;
+  const dy = event.clientY - imageDragStartY.value;
+  
+  // 更新图片位置
+  imagePositionX.value += dx;
+  imagePositionY.value += dy;
+  
+  // 更新起始位置
+  imageDragStartX.value = event.clientX;
+  imageDragStartY.value = event.clientY;
+};
+
+// 停止拖动图片
+const stopImageDrag = () => {
+  isImageDragging.value = false;
+  document.removeEventListener('mousemove', dragImage);
+  document.removeEventListener('mouseup', stopImageDrag);
 };
 
 // 调整区域位置
@@ -369,8 +444,8 @@ const getAverageColor = (x, y, width, height) => {
   ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
   
   // 计算实际区域在图片上的位置
-  const scaleX = img.naturalWidth / img.width;
-  const scaleY = img.naturalHeight / img.height;
+  const scaleX = img.naturalWidth / imageWidth.value;
+  const scaleY = img.naturalHeight / imageHeight.value;
   const realX = x * scaleX;
   const realY = y * scaleY;
   const realWidth = width * scaleX;
@@ -438,6 +513,7 @@ const useDetectedColors = () => {
     neck: detectionRegions.neck.color,
     lips: detectionRegions.lips.color,
     hair: detectionRegions.hair.color,
+    eyes: '#2F4F4F' // 由于无法准确检测，使用默认深灰色
   };
   
   emit('colorsDetected', colors);
@@ -447,12 +523,23 @@ const useDetectedColors = () => {
 onMounted(() => {
   // 添加窗口大小变化监听
   window.addEventListener('resize', () => {
-    if (editorContainer.value && uploadedImage.value) {
-      const maxWidth = editorContainer.value.clientWidth - 40;
+    if (uploadedImage.value) {
+      // 保持图片不超出视口
+      const containerWidth = document.documentElement.clientWidth - 80;
+      const maxWidth = Math.min(containerWidth, 800);
+      
       if (imageWidth.value > maxWidth) {
         const ratio = imageHeight.value / imageWidth.value;
+        const oldWidth = imageWidth.value;
         imageWidth.value = maxWidth;
         imageHeight.value = maxWidth * ratio;
+        
+        // 调整缩放比例
+        sizeScale.value = Math.round((maxWidth / 400) * 100);
+        
+        // 调整位置
+        imagePositionX.value = imagePositionX.value * (maxWidth / oldWidth);
+        imagePositionY.value = imagePositionY.value * (maxWidth / oldWidth);
       }
     }
   });
@@ -510,18 +597,35 @@ onMounted(() => {
 .editor-container {
   width: 100%;
   position: relative;
+}
+
+/* 固定大小的容器 */
+.fixed-container {
+  width: 500px;
+  height: 500px;
+  margin: 0 auto;
+  position: relative;
   overflow: hidden;
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius);
+  background-color: var(--color-background-soft);
 }
 
 .image-container {
-  position: relative;
-  margin: 0 auto;
+  position: absolute;
+  cursor: move;
+  transition: transform 0.1s ease;
+}
+
+.image-container.dragging {
+  transition: none;
 }
 
 .uploaded-image {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  display: block;
 }
 
 .detection-region {
@@ -690,14 +794,33 @@ onMounted(() => {
 }
 
 @media (max-width: 767px) {
+  .fixed-container {
+    width: 320px;
+    height: 320px;
+  }
+  
   .color-results {
     grid-template-columns: 1fr 1fr;
   }
 }
 
 @media (max-width: 480px) {
+  .fixed-container {
+    width: 280px;
+    height: 280px;
+  }
+  
   .color-results {
     grid-template-columns: 1fr;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .btn {
+    width: 100%;
   }
 }
 </style> 
