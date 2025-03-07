@@ -18,16 +18,6 @@
       </div>
 
       <div v-else class="test-area">
-        <div class="settings">
-          <div class="setting-item">
-            <label class="toggle">
-              <input type="checkbox" v-model="showReportPage">
-              <span class="toggle-slider"></span>
-              <span class="toggle-text">分析完成后显示独立报告页面</span>
-            </label>
-          </div>
-        </div>
-
         <div class="test-container">
           <div class="face-map-container" v-if="selectedMode === 'manual'">
             <FaceRegionMap />
@@ -35,7 +25,6 @@
           <div class="color-picker-container">
             <ColorPickerPanel
               :initialMode="selectedMode === 'auto' ? 'photo' : 'manual'"
-              :navigateToReport="showReportPage"
             />
           </div>
         </div>
@@ -45,12 +34,20 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import ColorPickerPanel from '../components/ColorTest/ColorPickerPanel.vue'
 import FaceRegionMap from '../components/ColorTest/FaceRegionMap.vue'
 
+const route = useRoute()
 const selectedMode = ref('')
-const showReportPage = ref(false)
+
+// 从路由参数获取初始模式
+onMounted(() => {
+  if (route.query.mode) {
+    selectMode(route.query.mode)
+  }
+})
 
 const selectMode = (mode) => {
   selectedMode.value = mode
@@ -122,67 +119,6 @@ h1 {
   position: relative;
 }
 
-.settings {
-  display: flex;
-  justify-content: flex-end;
-  padding: 1rem;
-  padding-top: 0;
-}
-
-.setting-item {
-  display: flex;
-  align-items: center;
-}
-
-.toggle {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.toggle input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.toggle-slider {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 20px;
-  background-color: var(--color-border);
-  border-radius: 20px;
-  transition: .4s;
-  margin-right: 8px;
-}
-
-.toggle-slider:before {
-  position: absolute;
-  content: "";
-  height: 16px;
-  width: 16px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  border-radius: 50%;
-  transition: .4s;
-}
-
-.toggle input:checked + .toggle-slider {
-  background-color: var(--color-primary);
-}
-
-.toggle input:checked + .toggle-slider:before {
-  transform: translateX(20px);
-}
-
-.toggle-text {
-  font-size: 14px;
-  color: var(--color-text);
-}
-
 .test-container {
   flex: 1;
   display: flex;
@@ -215,11 +151,6 @@ h1 {
 
   .test-container {
     padding: 0.5rem;
-  }
-  
-  .settings {
-    justify-content: center;
-    padding-bottom: 0;
   }
 }
 

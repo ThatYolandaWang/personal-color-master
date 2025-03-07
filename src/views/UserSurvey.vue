@@ -54,17 +54,6 @@
           </select>
         </div>
         
-        <div class="form-group">
-          <label for="season">当前季节</label>
-          <select id="season" v-model="userInfo.season" required>
-            <option value="">请选择当前季节</option>
-            <option value="春季">春季</option>
-            <option value="夏季">夏季</option>
-            <option value="秋季">秋季</option>
-            <option value="冬季">冬季</option>
-          </select>
-        </div>
-        
         <div class="form-actions">
           <button type="submit" class="btn primary">开始测试</button>
         </div>
@@ -85,7 +74,6 @@ const userInfo = ref({
   gender: '女',
   age: '',
   occupation: '',
-  season: ''
 });
 
 // 提交表单
@@ -93,8 +81,8 @@ const submitForm = () => {
   // 保存用户信息到 sessionStorage
   sessionStorage.setItem('userInfo', JSON.stringify(userInfo.value));
   
-  // 跳转到色彩测试页面
-  router.push('/color-test');
+  // 跳转到色彩测试页面，并自动选择照片检测模式
+  router.push('/color-test?mode=auto');
 };
 </script>
 

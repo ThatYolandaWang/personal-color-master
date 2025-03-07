@@ -211,10 +211,6 @@ const props = defineProps({
     type: String,
     default: 'manual', // 默认为手动模式
     validator: (value) => ['manual', 'photo'].includes(value)
-  },
-  navigateToReport: {
-    type: Boolean,
-    default: false // 默认不导航到报告页面
   }
 })
 
@@ -323,10 +319,8 @@ const submitColors = async () => {
     // 保存报告数据
     saveReportData(result)
     
-    // 如果需要，导航到报告页面
-    if (props.navigateToReport) {
-      router.push('/report')
-    }
+    // 始终导航到报告页面
+    router.push('/report')
   } catch (error) {
     console.error('颜色分析失败:', error)
     analysisError.value = true

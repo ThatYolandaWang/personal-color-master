@@ -70,11 +70,25 @@ function analyzeColor(rgb) {
 }
 
 // 生成分析提示词
-function generatePrompt(colors, userInfo = {}) {
-  const { age = '25-35', gender = '女' } = userInfo
-  const season = new Date().getMonth() >= 2 && new Date().getMonth() <= 4 ? '春季' :
-                new Date().getMonth() >= 5 && new Date().getMonth() <= 7 ? '夏季' :
-                new Date().getMonth() >= 8 && new Date().getMonth() <= 10 ? '秋季' : '冬季'
+function generatePrompt(colors) {
+  // 从sessionStorage获取用户信息
+  let userInfo = {}
+  try {
+    const storedUserInfo = sessionStorage.getItem('userInfo')
+    if (storedUserInfo) {
+      userInfo = JSON.parse(storedUserInfo)
+    }
+  } catch (e) {
+    console.error('获取用户信息失败:', e)
+  }
+  
+  const { nickname = '', age = '26-35岁', gender = '女', occupation = '' } = userInfo
+  
+  // 根据当前日期自动判断季节
+  const currentMonth = new Date().getMonth() + 1 // getMonth返回0-11
+  const season = currentMonth >= 3 && currentMonth <= 5 ? '春季' :
+                currentMonth >= 6 && currentMonth <= 8 ? '夏季' :
+                currentMonth >= 9 && currentMonth <= 11 ? '秋季' : '冬季'
   
   // 分析每个颜色的色调和明度
   const foreheadAnalysis = analyzeColor(colors.forehead)
@@ -84,7 +98,15 @@ function generatePrompt(colors, userInfo = {}) {
   const eyesAnalysis = analyzeColor(colors.eyes)
   const lipsAnalysis = analyzeColor(colors.lips)
   
-  return `我是${age}岁的中国${gender}，以下是我的面部色彩分析数据：
+  let promptPrefix = `我是${age}的中国${gender}`
+  if (occupation) {
+    promptPrefix += `，职业是${occupation}`
+  }
+  if (nickname) {
+    promptPrefix += `，我的昵称是${nickname}`
+  }
+  
+  return `${promptPrefix}，以下是我的面部色彩分析数据：
 
 1. 皮肤特征：
     - 前额色值：${colors.forehead}，色调：${foreheadAnalysis.tone}，明度：${foreheadAnalysis.brightness}
@@ -104,13 +126,13 @@ function generatePrompt(colors, userInfo = {}) {
 }
 
 // 调用DeepSeek API
-async function analyzeColors(colors, userInfo) {
+async function analyzeColors(colors) {
   if (!API_KEY) {
     throw new Error('缺少API密钥，无法进行分析')
   }
   
   try {
-    const prompt = generatePrompt(colors, userInfo)
+    const prompt = generatePrompt(colors)
     
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 50000) // 50秒超时
