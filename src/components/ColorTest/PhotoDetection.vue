@@ -16,7 +16,7 @@
     <div v-if="imageUrl" class="photo-editor">
       <div class="editor-container" ref="editorContainer">
         <!-- 照片展示区域，固定大小的容器 -->
-        <div class="fixed-container">
+        <div class="fixed-container" @click="handleContainerClick" @wheel="handleWheel">
           <!-- 图片容器 -->
           <div 
             class="image-container" 
@@ -37,6 +37,7 @@
             
             <!-- 各面部区域的检测椭圆 -->
             <div 
+              v-if="!isCropMode"
               v-for="(region, key) in detectionRegions" 
               :key="key"
               class="detection-region"
@@ -57,7 +58,7 @@
           </div>
           
           <!-- 裁剪框 -->
-          <div class="crop-overlay">
+          <div v-if="isCropMode" class="crop-overlay">
             <div class="crop-corners">
               <div class="crop-corner top-left"></div>
               <div class="crop-corner top-right"></div>
@@ -75,8 +76,37 @@
           </div>
         </div>
         
+        <!-- 裁剪按钮或确认取消按钮 -->
+        <div class="crop-actions">
+          <template v-if="!isCropMode">
+            <button 
+              class="btn primary"
+              @click="enterCropMode"
+            >
+              裁剪
+            </button>
+          </template>
+          <template v-else>
+            <button 
+              class="btn primary"
+              @click="confirmCrop"
+            >
+              确认
+            </button>
+            <button 
+              class="btn secondary"
+              @click="cancelCrop"
+            >
+              取消
+            </button>
+          </template>
+        </div>
+        <div v-if="isCropMode" class="crop-mode-tip">
+          提示: 可使用鼠标拖动图片调整位置，滚轮可放大缩小图片
+        </div>
+        
         <!-- 调整控件 -->
-        <div class="editor-controls">
+        <div class="editor-controls" v-if="!isCropMode">
           <div v-if="activeRegion" class="region-controls">
             <h3>{{ detectionRegions[activeRegion].label }} 区域调整</h3>
             <div class="region-size-controls">
@@ -103,7 +133,7 @@
       </div>
       
       <!-- 检测结果展示 -->
-      <div class="detection-results">
+      <div class="detection-results" v-if="!isCropMode">
         <h3>检测结果</h3>
         <div class="color-results">
           <div 
@@ -151,6 +181,8 @@ const imagePositionY = ref(0); // 图片Y位置
 const isImageDragging = ref(false); // 是否正在拖动图片
 const imageDragStartX = ref(0); // 图片拖动起始X坐标
 const imageDragStartY = ref(0); // 图片拖动起始Y坐标
+const isCropMode = ref(false); // 是否处于裁剪模式
+const originalImagePosition = ref({ x: 0, y: 0, width: 0, height: 0 }); // 保存原始图片位置信息
 
 // 拖拽状态
 const isDragging = ref(false);
@@ -236,6 +268,9 @@ const handleFileSelect = (event) => {
       detectionRegions[key].color = 'rgba(255, 255, 255, 0.5)';
     });
     
+    // 重置裁剪模式
+    isCropMode.value = false;
+    
     // 当图片加载完成后设置初始位置和大小
     setTimeout(() => {
       if (uploadedImage.value) {
@@ -277,20 +312,21 @@ const handleFileSelect = (event) => {
 
 // 开始拖动图片
 const startImageDrag = (event) => {
-  if (activeRegion.value) return; // 如果正在拖动区域，则不拖动图片
-  
-  isImageDragging.value = true;
-  
-  // 记录起始位置
-  imageDragStartX.value = event.clientX;
-  imageDragStartY.value = event.clientY;
-  
-  // 添加移动和结束拖拽的事件监听
-  document.addEventListener('mousemove', dragImage);
-  document.addEventListener('mouseup', stopImageDrag);
-  
-  // 防止事件冒泡
-  event.preventDefault();
+  // 在裁剪模式下或没有选中区域时才能拖动图片
+  if (isCropMode.value || !activeRegion.value) {
+    isImageDragging.value = true;
+    
+    // 记录起始位置
+    imageDragStartX.value = event.clientX;
+    imageDragStartY.value = event.clientY;
+    
+    // 添加移动和结束拖拽的事件监听
+    document.addEventListener('mousemove', dragImage);
+    document.addEventListener('mouseup', stopImageDrag);
+    
+    // 防止事件冒泡
+    event.preventDefault();
+  }
 };
 
 // 拖动图片
@@ -517,6 +553,89 @@ onMounted(() => {
     }
   });
 });
+
+// 处理点击容器
+const handleContainerClick = (event) => {
+  // 如果点击的是容器本身(而不是其中的区域)，则取消区域选择
+  if (event.target.classList.contains('fixed-container')) {
+    activeRegion.value = null;
+  }
+};
+
+// 进入裁剪模式
+const enterCropMode = () => {
+  // 保存当前图片位置和大小，以便取消时恢复
+  originalImagePosition.value = {
+    x: imagePositionX.value,
+    y: imagePositionY.value,
+    width: imageWidth.value,
+    height: imageHeight.value
+  };
+  
+  // 设置裁剪模式
+  isCropMode.value = true;
+};
+
+// 确认裁剪
+const confirmCrop = () => {
+  isCropMode.value = false;
+  
+  // 调整区域位置
+  adjustRegionsPosition();
+  
+  // 自动执行颜色检测
+  detectColors();
+};
+
+// 取消裁剪
+const cancelCrop = () => {
+  // 恢复原始图片位置和大小
+  imagePositionX.value = originalImagePosition.value.x;
+  imagePositionY.value = originalImagePosition.value.y;
+  imageWidth.value = originalImagePosition.value.width;
+  imageHeight.value = originalImagePosition.value.height;
+  
+  // 退出裁剪模式
+  isCropMode.value = false;
+};
+
+// 处理滚轮事件
+const handleWheel = (event) => {
+  // 只在裁剪模式下处理滚轮缩放
+  if (!isCropMode.value) return;
+  
+  event.preventDefault();
+  
+  const delta = event.deltaY;
+  const scaleFactor = delta > 0 ? 0.95 : 1.05; // 缩小或放大5%
+  
+  // 获取鼠标在容器中的相对位置
+  const containerRect = event.currentTarget.getBoundingClientRect();
+  const mouseX = event.clientX - containerRect.left - imagePositionX.value;
+  const mouseY = event.clientY - containerRect.top - imagePositionY.value;
+  
+  // 计算新的宽高
+  const newWidth = imageWidth.value * scaleFactor;
+  const newHeight = imageHeight.value * scaleFactor;
+  
+  // 根据鼠标位置计算新的位置偏移
+  const newPosX = imagePositionX.value - (mouseX * scaleFactor - mouseX);
+  const newPosY = imagePositionY.value - (mouseY * scaleFactor - mouseY);
+  
+  // 限制最小/最大缩放
+  const containerWidth = 450;
+  const containerHeight = 600;
+  
+  // 确保图片不会缩放太小
+  const minScale = 100; // 最小尺寸
+  if (newWidth >= minScale && newHeight >= minScale) {
+    // 更新图片位置和大小
+    imageWidth.value = newWidth;
+    imageHeight.value = newHeight;
+    imagePositionX.value = newPosX;
+    imagePositionY.value = newPosY;
+  }
+};
 </script>
 
 <style scoped>
@@ -889,5 +1008,19 @@ onMounted(() => {
   .btn {
     width: 100%;
   }
+}
+
+.crop-actions {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.crop-mode-tip {
+  margin-top: 5px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-secondary);
 }
 </style> 
