@@ -1,6 +1,16 @@
 // DeepSeek API服务
+import.meta.env.MODE === 'development' 
+  ? console.log('DeepSeek API 开发环境') 
+  : console.log('DeepSeek API 生产环境')
+
+// 从环境变量获取配置
 const API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY
-const API_BASE_URL = import.meta.env.VITE_DEEPSEEK_API_BASE_URL
+const API_BASE_URL = import.meta.env.VITE_DEEPSEEK_API_BASE_URL || 'https://api.deepseek.com/v1'
+
+// 检查API密钥是否存在
+if (!API_KEY) {
+  console.error('未找到DeepSeek API密钥，请确保在.env文件中设置了VITE_DEEPSEEK_API_KEY')
+}
 
 // 将RGB颜色转换为色调和明度描述
 function analyzeColor(rgb) {
@@ -95,8 +105,15 @@ function generatePrompt(colors, userInfo = {}) {
 
 // 调用DeepSeek API
 async function analyzeColors(colors, userInfo) {
+  if (!API_KEY) {
+    throw new Error('缺少API密钥，无法进行分析')
+  }
+  
   try {
     const prompt = generatePrompt(colors, userInfo)
+    
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 50000) // 50秒超时
     
     const response = await fetch(`${API_BASE_URL}/chat/completions`, {
       method: 'POST',
@@ -114,17 +131,24 @@ async function analyzeColors(colors, userInfo) {
         ],
         temperature: 0.7,
         max_tokens: 2000
-      })
+      }),
+      signal: controller.signal
     })
     
+    clearTimeout(timeoutId)
+    
     if (!response.ok) {
-      throw new Error(`API调用失败: ${response.status}`)
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(`API调用失败: ${response.status} ${errorData.error?.message || ''}`)
     }
     
     const data = await response.json()
     return data.choices[0].message.content
   } catch (error) {
     console.error('DeepSeek API调用错误:', error)
+    if (error.name === 'AbortError') {
+      throw new Error('分析请求超时，请稍后重试')
+    }
     throw error
   }
 }

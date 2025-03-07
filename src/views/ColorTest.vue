@@ -22,12 +22,25 @@
           <span>←</span> 返回选择
         </div>
 
+        <div class="settings">
+          <div class="setting-item">
+            <label class="toggle">
+              <input type="checkbox" v-model="showReportPage">
+              <span class="toggle-slider"></span>
+              <span class="toggle-text">分析完成后显示独立报告页面</span>
+            </label>
+          </div>
+        </div>
+
         <div class="test-container">
           <div class="face-map-container" v-if="selectedMode === 'manual'">
             <FaceRegionMap />
           </div>
           <div class="color-picker-container">
-            <ColorPickerPanel :initialMode="selectedMode === 'auto' ? 'photo' : 'manual'" />
+            <ColorPickerPanel
+              :initialMode="selectedMode === 'auto' ? 'photo' : 'manual'"
+              :navigateToReport="showReportPage"
+            />
           </div>
         </div>
       </div>
@@ -41,6 +54,7 @@ import ColorPickerPanel from '../components/ColorTest/ColorPickerPanel.vue'
 import FaceRegionMap from '../components/ColorTest/FaceRegionMap.vue'
 
 const selectedMode = ref('')
+const showReportPage = ref(false)
 
 const selectMode = (mode) => {
   selectedMode.value = mode
@@ -126,12 +140,73 @@ h1 {
   gap: 0.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
-  z-index: 1;
+  z-index: 10;
 }
 
 .back-button:hover {
   transform: translateX(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.settings {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem;
+  padding-top: 0;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+}
+
+.toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  background-color: var(--color-border);
+  border-radius: 20px;
+  transition: .4s;
+  margin-right: 8px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: .4s;
+}
+
+.toggle input:checked + .toggle-slider {
+  background-color: var(--color-primary);
+}
+
+.toggle input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-text {
+  font-size: 14px;
+  color: var(--color-text);
 }
 
 .test-container {
@@ -166,6 +241,11 @@ h1 {
 
   .test-container {
     padding: 0.5rem;
+  }
+  
+  .settings {
+    justify-content: center;
+    padding-bottom: 0;
   }
 }
 
