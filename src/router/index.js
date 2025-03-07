@@ -7,6 +7,11 @@ const routes = [
     component: () => import('@/views/Home.vue')
   },
   {
+    path: '/user-survey',
+    name: 'UserSurvey',
+    component: () => import('@/views/UserSurvey.vue')
+  },
+  {
     path: '/color-test',
     name: 'ColorTest',
     component: () => import('@/views/ColorTest.vue')

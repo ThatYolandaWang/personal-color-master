@@ -18,10 +18,6 @@
       </div>
 
       <div v-else class="test-area">
-        <div class="back-button" @click="selectedMode = ''">
-          <span>←</span> 返回选择
-        </div>
-
         <div class="settings">
           <div class="setting-item">
             <label class="toggle">
@@ -124,28 +120,6 @@ h1 {
   flex-direction: column;
   overflow: hidden;
   position: relative;
-}
-
-.back-button {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  padding: 0.5rem 1rem;
-  border-radius: var(--border-radius);
-  background-color: var(--color-surface);
-  color: var(--color-text);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  z-index: 10;
-}
-
-.back-button:hover {
-  transform: translateX(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .settings {

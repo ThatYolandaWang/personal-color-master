@@ -5,7 +5,7 @@
       <h1>个人色彩测试系统</h1>
       <p class="description">欢迎使用个人色彩测试系统，通过我们的测试可以帮助您找到最适合的色彩方案。</p>
       <div class="actions">
-        <router-link to="/color-test" class="btn primary">开始测试</router-link>
+        <router-link to="/user-survey" class="btn primary">开始测试</router-link>
       </div>
     </div>
   </div>

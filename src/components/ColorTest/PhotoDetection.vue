@@ -240,7 +240,7 @@ const handleFileSelect = (event) => {
       detectionRegions[key].color = 'rgba(255, 255, 255, 0.5)';
     });
     
-    // 当图片加载完成后，调整大小
+    // 当图片加载完成后，调整大小并执行颜色检测
     setTimeout(() => {
       if (uploadedImage.value) {
         const img = uploadedImage.value;
@@ -248,27 +248,25 @@ const handleFileSelect = (event) => {
         
         // 保持图片在容器内并设置合适的默认大小
         const maxWidth = container.clientWidth - 40;
-        const naturalRatio = img.naturalWidth / img.naturalHeight;
+        const scale = Math.min(1, maxWidth / img.naturalWidth);
         
-        if (naturalRatio > 1) {
-          imageWidth.value = Math.min(400, maxWidth);
-          imageHeight.value = imageWidth.value / naturalRatio;
-        } else {
-          imageHeight.value = Math.min(400, maxWidth);
-          imageWidth.value = imageHeight.value * naturalRatio;
-        }
+        imageWidth.value = img.naturalWidth * scale;
+        imageHeight.value = img.naturalHeight * scale;
         
-        // 根据图片尺寸调整区域位置
-        resetRegionPositions();
+        // 根据图片大小调整检测区域位置
+        adjustRegionsPosition();
+        
+        // 自动执行颜色检测
+        detectColors();
       }
-    }, 100);
+    }, 300);
   };
   
   reader.readAsDataURL(file);
 };
 
-// 重置区域位置
-const resetRegionPositions = () => {
+// 调整区域位置
+const adjustRegionsPosition = () => {
   const w = imageWidth.value;
   const h = imageHeight.value;
   
