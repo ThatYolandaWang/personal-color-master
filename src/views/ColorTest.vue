@@ -12,8 +12,8 @@
           <p>手动选择最接近的肤色</p>
         </div>
         <div class="option auto" @click="selectMode('auto')">
-          <h2>自动检测</h2>
-          <p>上传照片自动分析</p>
+          <h2>照片检测</h2>
+          <p>上传照片自动分析肤色</p>
         </div>
       </div>
 
@@ -22,17 +22,13 @@
           <span>←</span> 返回选择
         </div>
 
-        <div v-if="selectedMode === 'manual'" class="manual-selection">
-          <div class="face-map-container">
+        <div class="test-container">
+          <div class="face-map-container" v-if="selectedMode === 'manual'">
             <FaceRegionMap />
           </div>
           <div class="color-picker-container">
-            <ColorPickerPanel />
+            <ColorPickerPanel :initialMode="selectedMode === 'auto' ? 'photo' : 'manual'" />
           </div>
-        </div>
-
-        <div v-if="selectedMode === 'auto'" class="auto-detection">
-          <PhotoUpload />
         </div>
       </div>
     </div>
@@ -42,7 +38,6 @@
 <script setup>
 import { ref } from 'vue'
 import ColorPickerPanel from '../components/ColorTest/ColorPickerPanel.vue'
-import PhotoUpload from '../components/ColorTest/PhotoUpload.vue'
 import FaceRegionMap from '../components/ColorTest/FaceRegionMap.vue'
 
 const selectedMode = ref('')
@@ -139,7 +134,7 @@ h1 {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.manual-selection {
+.test-container {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -169,14 +164,14 @@ h1 {
     max-width: 300px;
   }
 
-  .manual-selection {
+  .test-container {
     padding: 0.5rem;
   }
 }
 
 /* 适配大屏幕 */
 @media (min-width: 1200px) {
-  .manual-selection {
+  .test-container {
     flex-direction: row;
     gap: 2rem;
   }

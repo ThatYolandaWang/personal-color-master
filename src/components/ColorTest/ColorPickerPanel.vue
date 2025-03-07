@@ -1,6 +1,28 @@
 <template>
   <div class="color-picker-panel">
-    <div class="color-pickers">
+    <!-- 添加检测模式选择 -->
+    <div class="detection-mode-switch">
+      <button 
+        :class="['mode-btn', { active: detectionMode === 'manual' }]" 
+        @click="detectionMode = 'manual'"
+      >
+        手动选择
+      </button>
+      <button 
+        :class="['mode-btn', { active: detectionMode === 'photo' }]" 
+        @click="detectionMode = 'photo'"
+      >
+        照片检测
+      </button>
+    </div>
+
+    <!-- 照片检测模式 -->
+    <div v-if="detectionMode === 'photo'" class="photo-detection-container">
+      <PhotoDetection @colorsDetected="applyDetectedColors" />
+    </div>
+
+    <!-- 手动选择模式 -->
+    <div v-else class="color-pickers">
       <!-- 前额颜色选择 -->
       <div class="color-picker-item">
         <label>前额</label>
@@ -171,6 +193,19 @@
 import { ref } from 'vue'
 import { analyzeColors } from '../../services/deepseek'
 import AnalysisResult from './AnalysisResult.vue'
+import PhotoDetection from './PhotoDetection.vue'
+
+// 接收外部传入的初始模式
+const props = defineProps({
+  initialMode: {
+    type: String,
+    default: 'manual', // 默认为手动模式
+    validator: (value) => ['manual', 'photo'].includes(value)
+  }
+})
+
+// 检测模式：manual = 手动选择, photo = 照片检测
+const detectionMode = ref(props.initialMode)
 
 const colors = ref({
   forehead: '#FFE4C4', // 默认颜色：象牙白
@@ -183,6 +218,19 @@ const colors = ref({
 
 const loading = ref(false)
 const analysisResult = ref('')
+
+// 应用从照片检测获取的颜色
+const applyDetectedColors = (detectedColors) => {
+  // 将检测到的颜色应用到表单
+  colors.value.forehead = detectedColors.forehead || colors.value.forehead
+  colors.value.cheeks = detectedColors.cheeks || colors.value.cheeks
+  colors.value.neck = detectedColors.neck || colors.value.neck
+  colors.value.hair = detectedColors.hair || colors.value.hair
+  colors.value.lips = detectedColors.lips || colors.value.lips
+  
+  // 自动切换到手动模式以便查看和微调结果
+  detectionMode.value = 'manual'
+}
 
 const submitColors = async () => {
   // 验证所有颜色是否都已选择
@@ -211,6 +259,39 @@ const submitColors = async () => {
   max-width: 800px;
   margin: 0 auto;
   padding: 1rem;
+}
+
+/* 检测模式切换 */
+.detection-mode-switch {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.mode-btn {
+  padding: 10px 20px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.mode-btn.active {
+  background-color: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.mode-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.photo-detection-container {
+  margin-bottom: 2rem;
 }
 
 .color-pickers {
