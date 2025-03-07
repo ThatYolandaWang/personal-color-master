@@ -1,75 +1,44 @@
 <template>
   <div class="face-region-map">
-    <svg viewBox="0 0 400 500" class="face-svg">
-      <!-- 面部轮廓 -->
-      <path d="M200,50 C300,50 350,150 350,250 C350,350 300,450 200,450 C100,450 50,350 50,250 C50,150 100,50 200,50" 
-            fill="none" 
-            stroke="var(--color-border)" 
-            stroke-width="2"/>
+    <div class="face-image-container">
+      <img src="@/assets/face.png" alt="面部区域图" class="face-image" />
       
-      <!-- 前额区域 -->
-      <path d="M120,120 C160,80 240,80 280,120" 
-            fill="none" 
-            stroke="var(--color-border)" 
-            stroke-dasharray="5,5"/>
-      <text x="200" y="100" text-anchor="middle" class="region-label">前额</text>
-      <line x1="280" y1="100" x2="380" y2="80" 
-            stroke="var(--color-border)" 
-            stroke-dasharray="5,5" 
-            class="guide-line"/>
+      <!-- 前额区域标注 -->
+      <div class="region-label forehead">
+        <span class="label-text">前额</span>
+        <div class="guide-line"></div>
+      </div>
       
-      <!-- 脸颊区域 -->
-      <path d="M120,200 C160,180 240,180 280,200" 
-            fill="none" 
-            stroke="var(--color-border)" 
-            stroke-dasharray="5,5"/>
-      <text x="320" y="200" text-anchor="start" class="region-label">脸颊</text>
-      <line x1="300" y1="200" x2="380" y2="200" 
-            stroke="var(--color-border)" 
-            stroke-dasharray="5,5" 
-            class="guide-line"/>
+      <!-- 脸颊区域标注 -->
+      <div class="region-label cheeks">
+        <span class="label-text">脸颊</span>
+        <div class="guide-line"></div>
+      </div>
       
-      <!-- 颈部区域 -->
-      <path d="M150,350 C180,370 220,370 250,350" 
-            fill="none" 
-            stroke="var(--color-border)" 
-            stroke-dasharray="5,5"/>
-      <text x="320" y="350" text-anchor="start" class="region-label">颈部</text>
-      <line x1="250" y1="350" x2="380" y2="350" 
-            stroke="var(--color-border)" 
-            stroke-dasharray="5,5" 
-            class="guide-line"/>
+      <!-- 颈部区域标注 -->
+      <div class="region-label neck">
+        <span class="label-text">颈部</span>
+        <div class="guide-line"></div>
+      </div>
       
-      <!-- 眼睛区域 -->
-      <ellipse cx="150" cy="180" rx="20" ry="10" 
-               fill="none" 
-               stroke="var(--color-border)"/>
-      <ellipse cx="250" cy="180" rx="20" ry="10" 
-               fill="none" 
-               stroke="var(--color-border)"/>
-      <text x="80" y="180" text-anchor="end" class="region-label">瞳色</text>
-      <line x1="100" y1="180" x2="20" y2="180" 
-            stroke="var(--color-border)" 
-            stroke-dasharray="5,5" 
-            class="guide-line"/>
+      <!-- 瞳色区域标注 -->
+      <div class="region-label eyes">
+        <span class="label-text">瞳色</span>
+        <div class="guide-line"></div>
+      </div>
       
-      <!-- 嘴唇区域 -->
-      <path d="M170,280 C200,290 230,280 230,280 C230,290 200,300 170,290 Z" 
-            fill="none" 
-            stroke="var(--color-border)"/>
-      <text x="80" y="280" text-anchor="end" class="region-label">唇色</text>
-      <line x1="100" y1="280" x2="20" y2="280" 
-            stroke="var(--color-border)" 
-            stroke-dasharray="5,5" 
-            class="guide-line"/>
+      <!-- 唇色区域标注 -->
+      <div class="region-label lips">
+        <span class="label-text">唇色</span>
+        <div class="guide-line"></div>
+      </div>
       
-      <!-- 发际线 -->
-      <path d="M100,120 C150,50 250,50 300,120" 
-            fill="none" 
-            stroke="var(--color-border)" 
-            stroke-dasharray="5,5"/>
-      <text x="200" y="30" text-anchor="middle" class="region-label">发色</text>
-    </svg>
+      <!-- 发色区域标注 -->
+      <div class="region-label hair">
+        <span class="label-text">发色</span>
+        <div class="guide-line"></div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -85,25 +54,122 @@
   padding: 1rem;
 }
 
-.face-svg {
+.face-image-container {
+  position: relative;
   width: 100%;
-  height: auto;
+  padding-top: 125%; /* 保持4:5的宽高比 */
+}
+
+.face-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .region-label {
-  fill: var(--color-text);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.guide-line {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  z-index: 10;
   transition: all 0.3s ease;
 }
 
-/* 悬停效果 */
-.region-label:hover + .guide-line,
-.guide-line:hover {
-  stroke: var(--color-primary);
-  stroke-width: 2;
+.label-text {
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 500;
+  background-color: var(--color-surface);
+  padding: 2px 6px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.guide-line {
+  height: 1px;
+  background-color: var(--color-border);
+  flex: 1;
+  transition: all 0.3s ease;
+}
+
+.region-label:hover .guide-line {
+  height: 2px;
+  background-color: var(--color-primary);
+}
+
+/* 各区域位置 */
+.forehead {
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  flex-direction: column;
+}
+
+.forehead .guide-line {
+  width: 1px;
+  height: 30px;
+  margin-top: 5px;
+}
+
+.cheeks {
+  top: 40%;
+  right: 5%;
+  width: 80px;
+}
+
+.cheeks .guide-line {
+  margin-right: 5px;
+}
+
+.neck {
+  bottom: 25%;
+  right: 5%;
+  width: 80px;
+}
+
+.neck .guide-line {
+  margin-right: 5px;
+}
+
+.eyes {
+  top: 40%;
+  left: 5%;
+  width: 80px;
+  flex-direction: row-reverse;
+}
+
+.eyes .guide-line {
+  margin-left: 5px;
+}
+
+.lips {
+  bottom: 35%;
+  left: 5%;
+  width: 80px;
+  flex-direction: row-reverse;
+}
+
+.lips .guide-line {
+  margin-left: 5px;
+}
+
+.hair {
+  top: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  flex-direction: column;
+}
+
+.hair .guide-line {
+  width: 1px;
+  height: 20px;
+  margin-bottom: 5px;
+}
+
+/* 暗色模式适配 */
+:deep(.dark-mode) .label-text {
+  background-color: var(--color-surface);
 }
 </style> 

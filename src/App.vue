@@ -61,6 +61,8 @@ body {
   width: 100vw;
   display: flex;
   flex-direction: column;
+  background-color: var(--color-background);
+  transition: background-color 0.3s ease;
 }
 
 .main-content {
@@ -70,6 +72,14 @@ body {
   align-items: center;
   padding: var(--content-padding);
   overflow: hidden;
+  background-color: var(--color-background);
+  transition: background-color 0.3s ease;
+}
+
+/* 添加暗色主题样式 */
+.dark-mode {
+  color: var(--color-text);
+  background-color: var(--color-background) !important;
 }
 
 /* 响应式设计 */

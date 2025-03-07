@@ -173,12 +173,12 @@ import { analyzeColors } from '../../services/deepseek'
 import AnalysisResult from './AnalysisResult.vue'
 
 const colors = ref({
-  forehead: '',
-  cheeks: '',
-  neck: '',
-  hair: '',
-  eyes: '',
-  lips: ''
+  forehead: '#FFE4C4', // 默认颜色：象牙白
+  cheeks: '#FFE4E1',   // 默认颜色：浅玫瑰
+  neck: '#F5DEB3',     // 默认颜色：小麦色
+  hair: '#1C1C1C',     // 默认颜色：碳黑
+  eyes: '#2F4F4F',     // 默认颜色：深灰
+  lips: '#DB7093'      // 默认颜色：玫瑰粉
 })
 
 const loading = ref(false)
