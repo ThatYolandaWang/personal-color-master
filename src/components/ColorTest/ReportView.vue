@@ -221,23 +221,66 @@ onMounted(() => {
 <style scoped>
 .report-view {
   width: 100%;
-  height: 100%;
-  position: relative;
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: var(--color-surface);
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  flex-direction: column;
+  max-height: 100%;
 }
 
-/* 加载状态样式 */
-.loading-container {
+.loading-container,
+.error-container {
+  padding: 3rem 2rem;
+  text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  flex: 1;
+}
+
+.result-container {
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  width: 100%;
-  padding: 2rem;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+.result-header {
+  background-color: var(--color-background-soft);
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.result-content {
+  color: var(--color-text);
+  line-height: 1.6;
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  max-height: calc(80vh - 180px);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0;
+  padding: 1.5rem;
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-background-soft);
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
 }
 
 .spinner {
@@ -285,17 +328,6 @@ onMounted(() => {
   transition: width 0.3s ease;
 }
 
-/* 错误状态样式 */
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding: 2rem;
-  text-align: center;
-}
-
 .error-icon {
   width: 60px;
   height: 60px;
@@ -326,22 +358,6 @@ onMounted(() => {
   gap: 1rem;
 }
 
-/* 结果样式 */
-.result-container {
-  width: 100%;
-  max-width: 800px;
-  padding: 2rem;
-  background-color: var(--color-surface);
-  border-radius: var(--border-radius);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  max-height: 100%;
-  overflow-y: auto;
-}
-
-.result-header {
-  margin-bottom: 2rem;
-}
-
 .result-header h2 {
   text-align: center;
   color: var(--color-text);
@@ -352,11 +368,6 @@ onMounted(() => {
   text-align: center;
   color: var(--color-text-secondary);
   font-size: 0.9rem;
-}
-
-.result-content {
-  color: var(--color-text);
-  line-height: 1.6;
 }
 
 .result-content h3 {
@@ -381,16 +392,6 @@ onMounted(() => {
   position: absolute;
   left: 0;
   color: var(--color-primary);
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--color-border);
 }
 
 .btn {

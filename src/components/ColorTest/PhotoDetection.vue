@@ -17,7 +17,7 @@
       <div class="editor-container" ref="editorContainer">
         <!-- 照片展示区域，固定大小的容器 -->
         <div class="fixed-container">
-          <!-- 可移动的图片容器 -->
+          <!-- 图片容器 -->
           <div 
             class="image-container" 
             :style="{ 
@@ -55,24 +55,28 @@
               <span class="region-label">{{ region.label }}</span>
             </div>
           </div>
+          
+          <!-- 裁剪框 -->
+          <div class="crop-overlay">
+            <div class="crop-corners">
+              <div class="crop-corner top-left"></div>
+              <div class="crop-corner top-right"></div>
+              <div class="crop-corner bottom-left"></div>
+              <div class="crop-corner bottom-right"></div>
+            </div>
+            <div class="crop-guidelines">
+              <div class="crop-guideline horizontal-top"></div>
+              <div class="crop-guideline horizontal-middle"></div>
+              <div class="crop-guideline horizontal-bottom"></div>
+              <div class="crop-guideline vertical-left"></div>
+              <div class="crop-guideline vertical-middle"></div>
+              <div class="crop-guideline vertical-right"></div>
+            </div>
+          </div>
         </div>
         
         <!-- 调整控件 -->
         <div class="editor-controls">
-          <div class="size-controls">
-            <label>照片大小</label>
-            <div class="slider-container">
-              <input 
-                type="range" 
-                v-model="sizeScale" 
-                min="50" 
-                max="200" 
-                class="size-slider"
-              />
-              <span>{{ sizeScale }}%</span>
-            </div>
-          </div>
-          
           <div v-if="activeRegion" class="region-controls">
             <h3>{{ detectionRegions[activeRegion].label }} 区域调整</h3>
             <div class="region-size-controls">
@@ -124,13 +128,6 @@
           >
             检测颜色
           </button>
-          <button 
-            class="btn secondary" 
-            @click="useDetectedColors"
-            :disabled="!allColorsDetected"
-          >
-            使用这些颜色
-          </button>
         </div>
       </div>
     </div>
@@ -147,9 +144,8 @@ const emit = defineEmits(['colorsDetected']);
 const imageUrl = ref('');
 const uploadedImage = ref(null);
 const editorContainer = ref(null);
-const imageWidth = ref(400);
-const imageHeight = ref(400);
-const sizeScale = ref(100);
+const imageWidth = ref(600);
+const imageHeight = ref(800);
 const imagePositionX = ref(0); // 图片X位置
 const imagePositionY = ref(0); // 图片Y位置
 const isImageDragging = ref(false); // 是否正在拖动图片
@@ -214,37 +210,6 @@ const detectionRegions = reactive({
   }
 });
 
-// 监听照片大小变化
-watch(sizeScale, (newValue) => {
-  const oldScale = imageWidth.value / 400;
-  const newScale = newValue / 100;
-  
-  // 计算新的尺寸
-  const newWidth = 400 * newScale;
-  const newHeight = (imageHeight.value / imageWidth.value) * newWidth;
-  
-  // 保持中心点位置不变
-  const widthDiff = newWidth - imageWidth.value;
-  const heightDiff = newHeight - imageHeight.value;
-  
-  // 调整图片位置，使缩放以中心点为基准
-  imagePositionX.value -= widthDiff / 2;
-  imagePositionY.value -= heightDiff / 2;
-  
-  // 更新图片尺寸
-  imageWidth.value = newWidth;
-  imageHeight.value = newHeight;
-  
-  // 调整区域大小和位置
-  Object.keys(detectionRegions).forEach(key => {
-    const region = detectionRegions[key];
-    region.x = (region.x / oldScale) * newScale;
-    region.y = (region.y / oldScale) * newScale;
-    region.width = (region.width / oldScale) * newScale;
-    region.height = (region.height / oldScale) * newScale;
-  });
-});
-
 // 判断是否所有颜色都已检测
 const allColorsDetected = computed(() => {
   return Object.values(detectionRegions).every(
@@ -271,21 +236,32 @@ const handleFileSelect = (event) => {
       detectionRegions[key].color = 'rgba(255, 255, 255, 0.5)';
     });
     
-    imagePositionX.value = 0;
-    imagePositionY.value = 0;
-    
-    // 当图片加载完成后，调整大小并执行颜色检测
+    // 当图片加载完成后设置初始位置和大小
     setTimeout(() => {
       if (uploadedImage.value) {
         const img = uploadedImage.value;
         
-        // 设置初始尺寸，保持原始宽高比
-        const originalRatio = img.naturalWidth / img.naturalHeight;
-        imageWidth.value = 400;
-        imageHeight.value = 400 / originalRatio;
+        // 计算图片的初始尺寸
+        const containerWidth = 450; // 固定容器宽度
+        const containerHeight = 600; // 固定容器高度
         
-        // 重置缩放比例
-        sizeScale.value = 100;
+        // 根据图片原始宽高比计算合适的尺寸
+        const imgRatio = img.naturalWidth / img.naturalHeight;
+        const containerRatio = containerWidth / containerHeight;
+        
+        if (imgRatio > containerRatio) {
+          // 图片较宽，以高度为基准
+          imageHeight.value = containerHeight;
+          imageWidth.value = containerHeight * imgRatio;
+          imagePositionX.value = (containerWidth - imageWidth.value) / 2;
+          imagePositionY.value = 0;
+        } else {
+          // 图片较高，以宽度为基准
+          imageWidth.value = containerWidth;
+          imageHeight.value = containerWidth / imgRatio;
+          imagePositionX.value = 0;
+          imagePositionY.value = (containerHeight - imageHeight.value) / 2;
+        }
         
         // 根据图片大小调整检测区域位置
         adjustRegionsPosition();
@@ -327,6 +303,15 @@ const dragImage = (event) => {
   // 更新图片位置
   imagePositionX.value += dx;
   imagePositionY.value += dy;
+  
+  // 限制图片不能完全移出容器
+  const containerWidth = 450;
+  const containerHeight = 600;
+  
+  // 确保至少保留100px的图片在容器内
+  const minVisible = 100;
+  imagePositionX.value = Math.max(Math.min(imagePositionX.value, minVisible), containerWidth - imageWidth.value - minVisible);
+  imagePositionY.value = Math.max(Math.min(imagePositionY.value, minVisible), containerHeight - imageHeight.value - minVisible);
   
   // 更新起始位置
   imageDragStartX.value = event.clientX;
@@ -482,41 +467,38 @@ const detectColors = () => {
     const region = detectionRegions[key];
     region.color = getAverageColor(region.x, region.y, region.width, region.height);
   });
-};
-
-// 使用检测到的颜色
-const useDetectedColors = () => {
-  if (!allColorsDetected.value) return;
   
-  // 将检测结果发送给父组件
-  const colors = {
-    forehead: detectionRegions.forehead.color,
-    cheeks: ((color1, color2) => {
-      // 计算左右脸颊的平均色
-      const hex1 = color1.replace('#', '');
-      const hex2 = color2.replace('#', '');
-      
-      const r1 = parseInt(hex1.substring(0, 2), 16);
-      const g1 = parseInt(hex1.substring(2, 4), 16);
-      const b1 = parseInt(hex1.substring(4, 6), 16);
-      
-      const r2 = parseInt(hex2.substring(0, 2), 16);
-      const g2 = parseInt(hex2.substring(2, 4), 16);
-      const b2 = parseInt(hex2.substring(4, 6), 16);
-      
-      const r = Math.round((r1 + r2) / 2);
-      const g = Math.round((g1 + g2) / 2);
-      const b = Math.round((b1 + b2) / 2);
-      
-      return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-    })(detectionRegions.leftCheek.color, detectionRegions.rightCheek.color),
-    neck: detectionRegions.neck.color,
-    lips: detectionRegions.lips.color,
-    hair: detectionRegions.hair.color,
-    eyes: '#2F4F4F' // 由于无法准确检测，使用默认深灰色
-  };
-  
-  emit('colorsDetected', colors);
+  // 自动将检测结果发送给父组件
+  if (allColorsDetected.value) {
+    const colors = {
+      forehead: detectionRegions.forehead.color,
+      cheeks: ((color1, color2) => {
+        // 计算左右脸颊的平均色
+        const hex1 = color1.replace('#', '');
+        const hex2 = color2.replace('#', '');
+        
+        const r1 = parseInt(hex1.substring(0, 2), 16);
+        const g1 = parseInt(hex1.substring(2, 4), 16);
+        const b1 = parseInt(hex1.substring(4, 6), 16);
+        
+        const r2 = parseInt(hex2.substring(0, 2), 16);
+        const g2 = parseInt(hex2.substring(2, 4), 16);
+        const b2 = parseInt(hex2.substring(4, 6), 16);
+        
+        const r = Math.round((r1 + r2) / 2);
+        const g = Math.round((g1 + g2) / 2);
+        const b = Math.round((b1 + b2) / 2);
+        
+        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+      })(detectionRegions.leftCheek.color, detectionRegions.rightCheek.color),
+      neck: detectionRegions.neck.color,
+      lips: detectionRegions.lips.color,
+      hair: detectionRegions.hair.color,
+      eyes: '#2F4F4F' // 由于无法准确检测，使用默认深灰色
+    };
+    
+    emit('colorsDetected', colors);
+  }
 };
 
 // 组件挂载时添加事件监听
@@ -524,23 +506,14 @@ onMounted(() => {
   // 添加窗口大小变化监听
   window.addEventListener('resize', () => {
     if (uploadedImage.value) {
-      // 保持图片不超出视口
-      const containerWidth = document.documentElement.clientWidth - 80;
-      const maxWidth = Math.min(containerWidth, 800);
+      // 处理窗口大小变化时的图片位置调整
+      const containerWidth = 450;
+      const containerHeight = 600;
       
-      if (imageWidth.value > maxWidth) {
-        const ratio = imageHeight.value / imageWidth.value;
-        const oldWidth = imageWidth.value;
-        imageWidth.value = maxWidth;
-        imageHeight.value = maxWidth * ratio;
-        
-        // 调整缩放比例
-        sizeScale.value = Math.round((maxWidth / 400) * 100);
-        
-        // 调整位置
-        imagePositionX.value = imagePositionX.value * (maxWidth / oldWidth);
-        imagePositionY.value = imagePositionY.value * (maxWidth / oldWidth);
-      }
+      // 确保图片不会完全移出容器
+      const minVisible = 100;
+      imagePositionX.value = Math.max(Math.min(imagePositionX.value, minVisible), containerWidth - imageWidth.value - minVisible);
+      imagePositionY.value = Math.max(Math.min(imagePositionY.value, minVisible), containerHeight - imageHeight.value - minVisible);
     }
   });
 });
@@ -599,10 +572,10 @@ onMounted(() => {
   position: relative;
 }
 
-/* 固定大小的容器 */
+/* 固定大小的容器，3:4比例 */
 .fixed-container {
-  width: 500px;
-  height: 500px;
+  width: 450px;
+  height: 600px;
   margin: 0 auto;
   position: relative;
   overflow: hidden;
@@ -626,6 +599,109 @@ onMounted(() => {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* 裁剪框样式 */
+.crop-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.crop-corners {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed rgba(255, 255, 255, 0.7);
+  box-sizing: border-box;
+}
+
+.crop-corner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.crop-corner.top-left {
+  top: -8px;
+  left: -8px;
+}
+
+.crop-corner.top-right {
+  top: -8px;
+  right: -8px;
+}
+
+.crop-corner.bottom-left {
+  bottom: -8px;
+  left: -8px;
+}
+
+.crop-corner.bottom-right {
+  bottom: -8px;
+  right: -8px;
+}
+
+.crop-guidelines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.crop-guideline {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.crop-guideline.horizontal-top {
+  top: 33.3%;
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+
+.crop-guideline.horizontal-middle {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+
+.crop-guideline.horizontal-bottom {
+  top: 66.7%;
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+
+.crop-guideline.vertical-left {
+  top: 0;
+  bottom: 0;
+  left: 33.3%;
+  width: 1px;
+}
+
+.crop-guideline.vertical-middle {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+}
+
+.crop-guideline.vertical-right {
+  top: 0;
+  bottom: 0;
+  left: 66.7%;
+  width: 1px;
 }
 
 .detection-region {
@@ -661,18 +737,10 @@ onMounted(() => {
   border-radius: var(--border-radius);
 }
 
-.size-controls,
 .region-controls {
   margin-bottom: 15px;
 }
 
-.slider-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.size-slider,
 .region-slider {
   flex: 1;
   height: 6px;
@@ -683,7 +751,6 @@ onMounted(() => {
   border-radius: 3px;
 }
 
-.size-slider::-webkit-slider-thumb,
 .region-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
@@ -795,8 +862,8 @@ onMounted(() => {
 
 @media (max-width: 767px) {
   .fixed-container {
-    width: 320px;
-    height: 320px;
+    width: 300px;
+    height: 400px;
   }
   
   .color-results {
@@ -806,8 +873,8 @@ onMounted(() => {
 
 @media (max-width: 480px) {
   .fixed-container {
-    width: 280px;
-    height: 280px;
+    width: 225px;
+    height: 300px;
   }
   
   .color-results {

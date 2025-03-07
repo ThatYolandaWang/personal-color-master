@@ -65,10 +65,12 @@ const navigateToColorTest = () => {
 .report-page {
   width: 100%;
   min-height: 100vh;
-  padding: 2rem 1rem;
+  max-height: 100vh;
+  padding: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 .no-report {
