@@ -1,7 +1,7 @@
 <template>
   <button class="theme-toggle" @click="toggleTheme" :title="isDarkMode ? '切换到日间模式' : '切换到夜间模式'">
     <span class="icon" :class="{ 'is-dark': isDarkMode }">
-      {{ isDarkMode ? '🌙' : '☀️' }}
+      {{ isDarkMode ? 'Night' : 'Day' }}
     </span>
   </button>
 </template>
