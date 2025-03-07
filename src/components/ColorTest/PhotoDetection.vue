@@ -37,7 +37,6 @@
             
             <!-- 各面部区域的检测椭圆 -->
             <div 
-              v-if="!isCropMode"
               v-for="(region, key) in detectionRegions" 
               :key="key"
               class="detection-region"
@@ -57,56 +56,12 @@
             </div>
           </div>
           
-          <!-- 裁剪框 -->
-          <div v-if="isCropMode" class="crop-overlay">
-            <div class="crop-corners">
-              <div class="crop-corner top-left"></div>
-              <div class="crop-corner top-right"></div>
-              <div class="crop-corner bottom-left"></div>
-              <div class="crop-corner bottom-right"></div>
-            </div>
-            <div class="crop-guidelines">
-              <div class="crop-guideline horizontal-top"></div>
-              <div class="crop-guideline horizontal-middle"></div>
-              <div class="crop-guideline horizontal-bottom"></div>
-              <div class="crop-guideline vertical-left"></div>
-              <div class="crop-guideline vertical-middle"></div>
-              <div class="crop-guideline vertical-right"></div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 裁剪按钮或确认取消按钮 -->
-        <div class="crop-actions">
-          <template v-if="!isCropMode">
-            <button 
-              class="btn primary"
-              @click="enterCropMode"
-            >
-              裁剪
-            </button>
-          </template>
-          <template v-else>
-            <button 
-              class="btn primary"
-              @click="confirmCrop"
-            >
-              确认
-            </button>
-            <button 
-              class="btn secondary"
-              @click="cancelCrop"
-            >
-              取消
-            </button>
-          </template>
-        </div>
-        <div v-if="isCropMode" class="crop-mode-tip">
-          提示: 可使用鼠标拖动图片调整位置，滚轮可放大缩小图片
+          <!-- 缩放指示 -->
+          <div class="zoom-tip">鼠标悬停于照片上，可使用滚轮放大缩小</div>
         </div>
         
         <!-- 调整控件 -->
-        <div class="editor-controls" v-if="!isCropMode">
+        <div class="editor-controls">
           <div v-if="activeRegion" class="region-controls">
             <h3>{{ detectionRegions[activeRegion].label }} 区域调整</h3>
             <div class="region-size-controls">
@@ -133,7 +88,7 @@
       </div>
       
       <!-- 检测结果展示 -->
-      <div class="detection-results" v-if="!isCropMode">
+      <div class="detection-results">
         <h3>检测结果</h3>
         <div class="color-results">
           <div 
@@ -165,7 +120,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { ref, reactive, computed, onMounted, watch, onUnmounted } from 'vue';
 
 // 发射事件
 const emit = defineEmits(['colorsDetected']);
@@ -181,8 +136,6 @@ const imagePositionY = ref(0); // 图片Y位置
 const isImageDragging = ref(false); // 是否正在拖动图片
 const imageDragStartX = ref(0); // 图片拖动起始X坐标
 const imageDragStartY = ref(0); // 图片拖动起始Y坐标
-const isCropMode = ref(false); // 是否处于裁剪模式
-const originalImagePosition = ref({ x: 0, y: 0, width: 0, height: 0 }); // 保存原始图片位置信息
 
 // 拖拽状态
 const isDragging = ref(false);
@@ -268,17 +221,15 @@ const handleFileSelect = (event) => {
       detectionRegions[key].color = 'rgba(255, 255, 255, 0.5)';
     });
     
-    // 重置裁剪模式
-    isCropMode.value = false;
-    
     // 当图片加载完成后设置初始位置和大小
     setTimeout(() => {
       if (uploadedImage.value) {
         const img = uploadedImage.value;
+        const fixedContainer = editorContainer.value.querySelector('.fixed-container');
         
-        // 计算图片的初始尺寸
-        const containerWidth = 450; // 固定容器宽度
-        const containerHeight = 600; // 固定容器高度
+        // 获取容器的实际尺寸
+        const containerWidth = fixedContainer.clientWidth;
+        const containerHeight = fixedContainer.clientHeight || fixedContainer.offsetWidth * 4/3; // 3:4比例
         
         // 根据图片原始宽高比计算合适的尺寸
         const imgRatio = img.naturalWidth / img.naturalHeight;
@@ -298,7 +249,7 @@ const handleFileSelect = (event) => {
           imagePositionY.value = (containerHeight - imageHeight.value) / 2;
         }
         
-        // 根据图片大小调整检测区域位置
+        // 调整区域位置
         adjustRegionsPosition();
         
         // 自动执行颜色检测
@@ -312,21 +263,18 @@ const handleFileSelect = (event) => {
 
 // 开始拖动图片
 const startImageDrag = (event) => {
-  // 在裁剪模式下或没有选中区域时才能拖动图片
-  if (isCropMode.value || !activeRegion.value) {
-    isImageDragging.value = true;
-    
-    // 记录起始位置
-    imageDragStartX.value = event.clientX;
-    imageDragStartY.value = event.clientY;
-    
-    // 添加移动和结束拖拽的事件监听
-    document.addEventListener('mousemove', dragImage);
-    document.addEventListener('mouseup', stopImageDrag);
-    
-    // 防止事件冒泡
-    event.preventDefault();
-  }
+  isImageDragging.value = true;
+  
+  // 记录起始位置
+  imageDragStartX.value = event.clientX;
+  imageDragStartY.value = event.clientY;
+  
+  // 添加移动和结束拖拽的事件监听
+  document.addEventListener('mousemove', dragImage);
+  document.addEventListener('mouseup', stopImageDrag);
+  
+  // 防止事件冒泡
+  event.preventDefault();
 };
 
 // 拖动图片
@@ -537,103 +485,101 @@ const detectColors = () => {
   }
 };
 
-// 组件挂载时添加事件监听
-onMounted(() => {
-  // 添加窗口大小变化监听
-  window.addEventListener('resize', () => {
-    if (uploadedImage.value) {
-      // 处理窗口大小变化时的图片位置调整
-      const containerWidth = 450;
-      const containerHeight = 600;
-      
-      // 确保图片不会完全移出容器
-      const minVisible = 100;
-      imagePositionX.value = Math.max(Math.min(imagePositionX.value, minVisible), containerWidth - imageWidth.value - minVisible);
-      imagePositionY.value = Math.max(Math.min(imagePositionY.value, minVisible), containerHeight - imageHeight.value - minVisible);
-    }
-  });
-});
+// 处理窗口大小变化
+const handleResize = () => {
+  if (uploadedImage.value) {
+    // 处理窗口大小变化时的图片位置调整
+    const containerWidth = 450;
+    const containerHeight = 600;
+    
+    // 确保图片不会完全移出容器
+    const minVisible = 100;
+    imagePositionX.value = Math.max(Math.min(imagePositionX.value, minVisible), containerWidth - imageWidth.value - minVisible);
+    imagePositionY.value = Math.max(Math.min(imagePositionY.value, minVisible), containerHeight - imageHeight.value - minVisible);
+  }
+};
 
-// 处理点击容器
-const handleContainerClick = (event) => {
-  // 如果点击的是容器本身(而不是其中的区域)，则取消区域选择
-  if (event.target.classList.contains('fixed-container')) {
+// 处理document点击事件
+const handleDocumentClick = (event) => {
+  // 如果点击的不是检测区域，则取消区域选择
+  const isDetectionRegion = event.target.closest('.detection-region');
+  // 只有在点击区域外且有活动区域时取消选择
+  if (!isDetectionRegion && activeRegion.value !== null) {
     activeRegion.value = null;
   }
 };
 
-// 进入裁剪模式
-const enterCropMode = () => {
-  // 保存当前图片位置和大小，以便取消时恢复
-  originalImagePosition.value = {
-    x: imagePositionX.value,
-    y: imagePositionY.value,
-    width: imageWidth.value,
-    height: imageHeight.value
-  };
+// 组件挂载时添加事件监听
+onMounted(() => {
+  // 添加窗口大小变化监听
+  window.addEventListener('resize', handleResize);
   
-  // 设置裁剪模式
-  isCropMode.value = true;
-};
+  // 添加全局点击事件监听，用于取消区域选择
+  document.addEventListener('click', handleDocumentClick);
+});
 
-// 确认裁剪
-const confirmCrop = () => {
-  isCropMode.value = false;
-  
-  // 调整区域位置
-  adjustRegionsPosition();
-  
-  // 自动执行颜色检测
-  detectColors();
-};
+// 在组件卸载时移除事件监听
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
+  document.removeEventListener('click', handleDocumentClick);
+});
 
-// 取消裁剪
-const cancelCrop = () => {
-  // 恢复原始图片位置和大小
-  imagePositionX.value = originalImagePosition.value.x;
-  imagePositionY.value = originalImagePosition.value.y;
-  imageWidth.value = originalImagePosition.value.width;
-  imageHeight.value = originalImagePosition.value.height;
-  
-  // 退出裁剪模式
-  isCropMode.value = false;
+// 处理点击容器
+const handleContainerClick = (event) => {
+  // 如果点击的不是检测区域（detection-region），则取消区域选择
+  const isDetectionRegion = event.target.closest('.detection-region');
+  if (!isDetectionRegion) {
+    activeRegion.value = null;
+  }
 };
 
 // 处理滚轮事件
 const handleWheel = (event) => {
-  // 只在裁剪模式下处理滚轮缩放
-  if (!isCropMode.value) return;
-  
   event.preventDefault();
   
   const delta = event.deltaY;
-  const scaleFactor = delta > 0 ? 0.95 : 1.05; // 缩小或放大5%
+  // 使用更小的缩放因子，让缩放更平滑
+  const scaleFactor = delta > 0 ? 0.98 : 1.02; // 缩小或放大2%
+  
+  // 获取容器的实际尺寸
+  const fixedContainer = event.currentTarget;
+  const containerWidth = fixedContainer.clientWidth;
+  const containerHeight = fixedContainer.clientHeight || fixedContainer.offsetWidth * 4/3;
   
   // 获取鼠标在容器中的相对位置
-  const containerRect = event.currentTarget.getBoundingClientRect();
-  const mouseX = event.clientX - containerRect.left - imagePositionX.value;
-  const mouseY = event.clientY - containerRect.top - imagePositionY.value;
+  const containerRect = fixedContainer.getBoundingClientRect();
+  const mouseX = event.clientX - containerRect.left;
+  const mouseY = event.clientY - containerRect.top;
+  
+  // 计算鼠标相对于图片的位置比例
+  const relativeX = (mouseX - imagePositionX.value) / imageWidth.value;
+  const relativeY = (mouseY - imagePositionY.value) / imageHeight.value;
   
   // 计算新的宽高
-  const newWidth = imageWidth.value * scaleFactor;
-  const newHeight = imageHeight.value * scaleFactor;
-  
-  // 根据鼠标位置计算新的位置偏移
-  const newPosX = imagePositionX.value - (mouseX * scaleFactor - mouseX);
-  const newPosY = imagePositionY.value - (mouseY * scaleFactor - mouseY);
-  
-  // 限制最小/最大缩放
-  const containerWidth = 450;
-  const containerHeight = 600;
+  const oldWidth = imageWidth.value;
+  const oldHeight = imageHeight.value;
+  const newWidth = oldWidth * scaleFactor;
+  const newHeight = oldHeight * scaleFactor;
   
   // 确保图片不会缩放太小
-  const minScale = 100; // 最小尺寸
+  const minScale = Math.min(containerWidth, containerHeight) * 0.3; // 最小尺寸为容器尺寸的30%
   if (newWidth >= minScale && newHeight >= minScale) {
-    // 更新图片位置和大小
+    // 先更新图片尺寸
     imageWidth.value = newWidth;
     imageHeight.value = newHeight;
-    imagePositionX.value = newPosX;
-    imagePositionY.value = newPosY;
+    
+    // 根据鼠标位置比例计算新的位置
+    // 这样可以保持鼠标指向的图片点不变，实现更平滑的缩放体验
+    imagePositionX.value = mouseX - (relativeX * newWidth);
+    imagePositionY.value = mouseY - (relativeY * newHeight);
+    
+    // 确保图片不会完全移出容器
+    const minVisible = Math.min(containerWidth, containerHeight) * 0.1; // 至少保留10%在容器内
+    imagePositionX.value = Math.max(Math.min(imagePositionX.value, minVisible), containerWidth - imageWidth.value - minVisible);
+    imagePositionY.value = Math.max(Math.min(imagePositionY.value, minVisible), containerHeight - imageHeight.value - minVisible);
+    
+    // 调整区域位置和大小
+    adjustRegionsPosition();
   }
 };
 </script>
@@ -641,13 +587,16 @@ const handleWheel = (event) => {
 <style scoped>
 .photo-detection {
   width: 100%;
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
+  height: calc(100vh - 180px); /* 减去页面头部的高度 */
+  display: flex;
+  flex-direction: column;
 }
 
 .upload-section {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .upload-label {
@@ -682,19 +631,23 @@ const handleWheel = (event) => {
 
 .photo-editor {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  flex-direction: row;
+  gap: 15px;
+  flex: 1;
+  overflow: hidden;
 }
 
 .editor-container {
-  width: 100%;
+  flex: 1;
   position: relative;
+  max-width: 65%;
 }
 
 /* 固定大小的容器，3:4比例 */
 .fixed-container {
-  width: 450px;
-  height: 600px;
+  width: 100%;
+  height: 0;
+  padding-bottom: 133.33%; /* 3:4比例 */
   margin: 0 auto;
   position: relative;
   overflow: hidden;
@@ -707,6 +660,7 @@ const handleWheel = (event) => {
   position: absolute;
   cursor: move;
   transition: transform 0.1s ease;
+  transform-origin: center;
 }
 
 .image-container.dragging {
@@ -850,8 +804,8 @@ const handleWheel = (event) => {
 }
 
 .editor-controls {
-  margin-top: 20px;
-  padding: 15px;
+  margin-top: 10px;
+  padding: 10px;
   background-color: var(--color-background-soft);
   border-radius: var(--border-radius);
 }
@@ -888,9 +842,12 @@ const handleWheel = (event) => {
 }
 
 .detection-results {
-  padding: 20px;
+  flex: 1;
+  padding: 15px;
   background-color: var(--color-background-soft);
   border-radius: var(--border-radius);
+  overflow-y: auto;
+  max-height: 100%;
 }
 
 .color-results {
@@ -927,10 +884,7 @@ const handleWheel = (event) => {
 }
 
 .action-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 20px;
+  margin-top: 15px;
 }
 
 .btn {
@@ -964,49 +918,21 @@ const handleWheel = (event) => {
 }
 
 /* 响应式设计 */
-@media (min-width: 768px) {
+@media (max-width: 768px) {
+  .photo-detection {
+    height: auto;
+  }
+  
   .photo-editor {
-    flex-direction: row;
-    align-items: flex-start;
+    flex-direction: column;
   }
   
   .editor-container {
-    flex: 1.5;
+    max-width: 100%;
   }
   
-  .detection-results {
-    flex: 1;
-  }
-}
-
-@media (max-width: 767px) {
   .fixed-container {
-    width: 300px;
-    height: 400px;
-  }
-  
-  .color-results {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .fixed-container {
-    width: 225px;
-    height: 300px;
-  }
-  
-  .color-results {
-    grid-template-columns: 1fr;
-  }
-  
-  .action-buttons {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .btn {
-    width: 100%;
+    padding-bottom: 100%; /* 移动端使用1:1比例 */
   }
 }
 
@@ -1022,5 +948,20 @@ const handleWheel = (event) => {
   text-align: center;
   font-size: 14px;
   color: var(--color-text-secondary);
+}
+
+.zoom-tip {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: white;
+  font-size: 12px;
+  text-shadow: 0 0 3px rgba(0,0,0,0.8);
+  pointer-events: none;
+  background-color: rgba(0,0,0,0.3);
+  padding: 3px 0;
+  opacity: 0.7;
 }
 </style> 
