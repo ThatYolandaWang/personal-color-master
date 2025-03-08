@@ -288,14 +288,34 @@ const dragImage = (event) => {
   imagePositionX.value += dx;
   imagePositionY.value += dy;
   
-  // 限制图片不能完全移出容器
-  const containerWidth = 450;
-  const containerHeight = 600;
+  // 获取固定容器的实际尺寸
+  const fixedContainer = editorContainer.value.querySelector('.fixed-container');
+  const containerWidth = fixedContainer.clientWidth;
+  const containerHeight = fixedContainer.clientHeight || fixedContainer.offsetWidth * 4/3;
   
-  // 确保至少保留100px的图片在容器内
-  const minVisible = 100;
-  imagePositionX.value = Math.max(Math.min(imagePositionX.value, minVisible), containerWidth - imageWidth.value - minVisible);
-  imagePositionY.value = Math.max(Math.min(imagePositionY.value, minVisible), containerHeight - imageHeight.value - minVisible);
+  // 确定边界限制
+  const minVisible = Math.min(containerWidth, containerHeight) * 0.1; // 至少保留10%在容器内
+  
+  // 图片小于容器时的特殊处理 - 允许居中放置
+  if (imageWidth.value < containerWidth) {
+    // 水平方向允许图片在容器内自由移动
+    const maxLeft = (containerWidth - imageWidth.value) / 2 + containerWidth * 0.3; // 增加一些余量
+    const minLeft = (containerWidth - imageWidth.value) / 2 - containerWidth * 0.3;
+    imagePositionX.value = Math.max(Math.min(imagePositionX.value, maxLeft), minLeft);
+  } else {
+    // 图片宽度大于容器时的正常限制
+    imagePositionX.value = Math.max(Math.min(imagePositionX.value, 0), containerWidth - imageWidth.value);
+  }
+  
+  if (imageHeight.value < containerHeight) {
+    // 垂直方向允许图片在容器内自由移动
+    const maxTop = (containerHeight - imageHeight.value) / 2 + containerHeight * 0.3; // 增加一些余量
+    const minTop = (containerHeight - imageHeight.value) / 2 - containerHeight * 0.3;
+    imagePositionY.value = Math.max(Math.min(imagePositionY.value, maxTop), minTop);
+  } else {
+    // 图片高度大于容器时的正常限制
+    imagePositionY.value = Math.max(Math.min(imagePositionY.value, 0), containerHeight - imageHeight.value);
+  }
   
   // 更新起始位置
   imageDragStartX.value = event.clientX;
@@ -488,14 +508,27 @@ const detectColors = () => {
 // 处理窗口大小变化
 const handleResize = () => {
   if (uploadedImage.value) {
-    // 处理窗口大小变化时的图片位置调整
-    const containerWidth = 450;
-    const containerHeight = 600;
+    // 获取固定容器的实际尺寸
+    const fixedContainer = editorContainer.value.querySelector('.fixed-container');
+    const containerWidth = fixedContainer.clientWidth;
+    const containerHeight = fixedContainer.clientHeight || fixedContainer.offsetWidth * 4/3;
     
-    // 确保图片不会完全移出容器
-    const minVisible = 100;
-    imagePositionX.value = Math.max(Math.min(imagePositionX.value, minVisible), containerWidth - imageWidth.value - minVisible);
-    imagePositionY.value = Math.max(Math.min(imagePositionY.value, minVisible), containerHeight - imageHeight.value - minVisible);
+    // 当图片小于容器时，确保图片居中
+    if (imageWidth.value < containerWidth) {
+      imagePositionX.value = (containerWidth - imageWidth.value) / 2;
+    } else {
+      // 确保图片不会太远离容器边界
+      const maxOffsetX = containerWidth * 0.1;
+      imagePositionX.value = Math.max(Math.min(imagePositionX.value, maxOffsetX), containerWidth - imageWidth.value - maxOffsetX);
+    }
+    
+    if (imageHeight.value < containerHeight) {
+      imagePositionY.value = (containerHeight - imageHeight.value) / 2;
+    } else {
+      // 确保图片不会太远离容器边界
+      const maxOffsetY = containerHeight * 0.1;
+      imagePositionY.value = Math.max(Math.min(imagePositionY.value, maxOffsetY), containerHeight - imageHeight.value - maxOffsetY);
+    }
   }
 };
 
@@ -551,35 +584,58 @@ const handleWheel = (event) => {
   const mouseX = event.clientX - containerRect.left;
   const mouseY = event.clientY - containerRect.top;
   
-  // 计算鼠标相对于图片的位置比例
-  const relativeX = (mouseX - imagePositionX.value) / imageWidth.value;
-  const relativeY = (mouseY - imagePositionY.value) / imageHeight.value;
+  // 计算鼠标相对于图片的位置比例（考虑图片在容器内的实际位置）
+  // 注意：只有鼠标在图片上时才应该进行比例计算
+  const mouseOverImageX = mouseX - imagePositionX.value;
+  const mouseOverImageY = mouseY - imagePositionY.value;
   
-  // 计算新的宽高
-  const oldWidth = imageWidth.value;
-  const oldHeight = imageHeight.value;
-  const newWidth = oldWidth * scaleFactor;
-  const newHeight = oldHeight * scaleFactor;
-  
-  // 确保图片不会缩放太小
-  const minScale = Math.min(containerWidth, containerHeight) * 0.3; // 最小尺寸为容器尺寸的30%
-  if (newWidth >= minScale && newHeight >= minScale) {
-    // 先更新图片尺寸
-    imageWidth.value = newWidth;
-    imageHeight.value = newHeight;
+  // 检查鼠标是否在图片上
+  if (mouseOverImageX >= 0 && mouseOverImageX <= imageWidth.value && 
+      mouseOverImageY >= 0 && mouseOverImageY <= imageHeight.value) {
     
-    // 根据鼠标位置比例计算新的位置
-    // 这样可以保持鼠标指向的图片点不变，实现更平滑的缩放体验
-    imagePositionX.value = mouseX - (relativeX * newWidth);
-    imagePositionY.value = mouseY - (relativeY * newHeight);
+    // 计算鼠标相对于图片的位置比例
+    const relativeX = mouseOverImageX / imageWidth.value;
+    const relativeY = mouseOverImageY / imageHeight.value;
     
-    // 确保图片不会完全移出容器
-    const minVisible = Math.min(containerWidth, containerHeight) * 0.1; // 至少保留10%在容器内
-    imagePositionX.value = Math.max(Math.min(imagePositionX.value, minVisible), containerWidth - imageWidth.value - minVisible);
-    imagePositionY.value = Math.max(Math.min(imagePositionY.value, minVisible), containerHeight - imageHeight.value - minVisible);
+    // 计算新的宽高
+    const oldWidth = imageWidth.value;
+    const oldHeight = imageHeight.value;
+    const newWidth = oldWidth * scaleFactor;
+    const newHeight = oldHeight * scaleFactor;
     
-    // 调整区域位置和大小
-    adjustRegionsPosition();
+    // 确保图片不会缩放太小
+    const minScale = Math.min(containerWidth, containerHeight) * 0.3; // 最小尺寸为容器尺寸的30%
+    if (newWidth >= minScale && newHeight >= minScale) {
+      // 先更新图片尺寸
+      imageWidth.value = newWidth;
+      imageHeight.value = newHeight;
+      
+      // 更新图片位置，保持鼠标指向的图片点不变
+      imagePositionX.value = mouseX - (relativeX * newWidth);
+      imagePositionY.value = mouseY - (relativeY * newHeight);
+      
+      // 特殊处理：当图片小于容器时，确保图片居中显示
+      if (newWidth < containerWidth) {
+        // 图片宽度小于容器，水平居中
+        imagePositionX.value = (containerWidth - newWidth) / 2;
+      } else {
+        // 图片宽度大于容器，确保不会太远离边界
+        const maxOffsetX = containerWidth * 0.1;
+        imagePositionX.value = Math.max(Math.min(imagePositionX.value, maxOffsetX), containerWidth - newWidth - maxOffsetX);
+      }
+      
+      if (newHeight < containerHeight) {
+        // 图片高度小于容器，垂直居中
+        imagePositionY.value = (containerHeight - newHeight) / 2;
+      } else {
+        // 图片高度大于容器，确保不会太远离边界
+        const maxOffsetY = containerHeight * 0.1;
+        imagePositionY.value = Math.max(Math.min(imagePositionY.value, maxOffsetY), containerHeight - newHeight - maxOffsetY);
+      }
+      
+      // 调整区域位置和大小
+      adjustRegionsPosition();
+    }
   }
 };
 </script>
@@ -589,9 +645,12 @@ const handleWheel = (event) => {
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
-  height: calc(100vh - 180px); /* 减去页面头部的高度 */
   display: flex;
   flex-direction: column;
+  position: relative;
+  /*min-height: calc(100vh - 180px);*/ /* 最小高度 */
+  max-height: calc(100vh - 180px); /* 最大高度 */
+  overflow: hidden; /* 防止内容溢出 */
 }
 
 .upload-section {
@@ -836,6 +895,7 @@ const handleWheel = (event) => {
 
 .region-size-controls {
   display: grid;
+  padding: 15px;
   grid-template-columns: auto 1fr;
   gap: 10px;
   align-items: center;
@@ -860,6 +920,7 @@ const handleWheel = (event) => {
 .color-result-item {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   cursor: pointer;
   padding: 10px;
@@ -885,6 +946,10 @@ const handleWheel = (event) => {
 
 .action-buttons {
   margin-top: 15px;
+  text-align: center;
+  bottom: 0;
+  background-color: var(--color-background-soft);
+  padding-bottom: 5px;
 }
 
 .btn {
