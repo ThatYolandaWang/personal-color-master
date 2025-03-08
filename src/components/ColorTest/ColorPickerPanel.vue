@@ -192,6 +192,7 @@ const cancelReport = () => {
   transition: all 0.3s ease;
   cursor: pointer;
   border: none;
+  font-size: 1.1rem;
 }
 
 .btn.primary {

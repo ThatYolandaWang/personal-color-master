@@ -648,9 +648,8 @@ const handleWheel = (event) => {
   display: flex;
   flex-direction: column;
   position: relative;
-  /*min-height: calc(100vh - 180px);*/ /* 最小高度 */
-  max-height: calc(100vh - 180px); /* 最大高度 */
-  overflow: hidden; /* 防止内容溢出 */
+  /* 去掉固定的最小高度，允许内容自然伸展 */
+  overflow: visible; /* 允许内容正常溢出 */
 }
 
 .upload-section {
@@ -674,6 +673,7 @@ const handleWheel = (event) => {
   color: white;
   border-radius: var(--border-radius);
   transition: all 0.3s;
+  font-size: 1.1rem;
 }
 
 .upload-button:hover {
@@ -693,7 +693,7 @@ const handleWheel = (event) => {
   flex-direction: row;
   gap: 15px;
   flex: 1;
-  overflow: hidden;
+  overflow: visible; /* 允许内容正常溢出 */
 }
 
 .editor-container {
@@ -873,6 +873,12 @@ const handleWheel = (event) => {
   margin-bottom: 15px;
 }
 
+.region-controls h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
 .region-slider {
   flex: 1;
   height: 6px;
@@ -906,8 +912,15 @@ const handleWheel = (event) => {
   padding: 15px;
   background-color: var(--color-background-soft);
   border-radius: var(--border-radius);
-  overflow-y: auto;
-  max-height: 100%;
+  overflow: visible;
+
+  flex-direction: column;
+}
+
+.detection-results h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  text-align: center;
 }
 
 .color-results {
@@ -915,6 +928,7 @@ const handleWheel = (event) => {
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 15px;
   margin: 15px 0;
+  flex: 1;
 }
 
 .color-result-item {
@@ -959,6 +973,7 @@ const handleWheel = (event) => {
   cursor: pointer;
   font-weight: 500;
   transition: all 0.3s;
+  font-size: 1.1rem;
 }
 
 .btn.primary {
@@ -982,10 +997,12 @@ const handleWheel = (event) => {
   cursor: not-allowed;
 }
 
-/* 响应式设计 */
+/* 响应式设计优化 */
 @media (max-width: 768px) {
   .photo-detection {
     height: auto;
+    max-height: none; /* 移除最大高度限制 */
+    padding-bottom: 20px; /* 底部增加一些间距 */
   }
   
   .photo-editor {
@@ -994,11 +1011,23 @@ const handleWheel = (event) => {
   
   .editor-container {
     max-width: 100%;
+    margin-bottom: 15px; /* 添加底部边距 */
   }
   
   .fixed-container {
     padding-bottom: 100%; /* 移动端使用1:1比例 */
   }
+  
+  .detection-results {
+    min-height: 240px; /* 确保在小屏幕上有一个最小高度 */
+    height: auto; /* 允许自动伸展 */
+  }
+  
+  .color-results {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* 调整网格大小适应小屏幕 */
+  }
+  
+
 }
 
 .crop-actions {
