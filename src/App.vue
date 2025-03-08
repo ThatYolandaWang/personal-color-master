@@ -11,7 +11,7 @@ onMounted(() => {
 <template>
   <div id="app" :class="{ 'dark-mode': isDarkMode }">
     <ThemeToggle />
-    <main class="main-content">
+    <main class="main-content container-fluid p-0">
       <router-view></router-view>
     </main>
   </div>

@@ -1,118 +1,166 @@
 <template>
-  <div class="photo-detection">
-    <div class="upload-section">
-      <label class="upload-label">
-        <input 
-          type="file" 
-          accept="image/*" 
-          @change="handleFileSelect" 
-          class="file-input"
-        >
-        <span class="upload-button">选择照片</span>
-      </label>
-      <p class="upload-help">请上传一张清晰的正面照片</p>
-    </div>
-
-    <div v-if="imageUrl" class="photo-editor">
-      <div class="editor-container" ref="editorContainer">
-        <!-- 照片展示区域，固定大小的容器 -->
-        <div class="fixed-container" @click="handleContainerClick" @wheel="handleWheel">
-          <!-- 图片容器 -->
-          <div 
-            class="image-container" 
-            :style="{ 
-              width: `${imageWidth}px`, 
-              height: `${imageHeight}px`,
-              transform: `translate(${imagePositionX}px, ${imagePositionY}px)`
-            }"
-            @mousedown="startImageDrag"
-            :class="{ 'dragging': isImageDragging }"
-          >
-            <img 
-              :src="imageUrl" 
-              alt="上传的照片" 
-              class="uploaded-image" 
-              ref="uploadedImage"
-            />
-            
-            <!-- 各面部区域的检测椭圆 -->
-            <div 
-              v-for="(region, key) in detectionRegions" 
-              :key="key"
-              class="detection-region"
-              :class="{ 'active': activeRegion === key }"
-              :style="{
-                width: `${region.width}px`,
-                height: `${region.height}px`,
-                left: `${region.x}px`,
-                top: `${region.y}px`,
-                backgroundColor: region.color,
-                borderColor: activeRegion === key ? '#00aaff' : 'rgba(255,255,255,0.5)'
-              }"
-              @mousedown.stop="startDrag($event, key)"
-              @click.stop="setActiveRegion(key)"
-            >
-              <span class="region-label">{{ region.label }}</span>
-            </div>
-          </div>
-          
-          <!-- 缩放指示 -->
-          <div class="zoom-tip">鼠标悬停于照片上，可使用滚轮放大缩小</div>
-        </div>
-        
-        <!-- 调整控件 -->
-        <div class="editor-controls">
-          <div v-if="activeRegion" class="region-controls">
-            <h3>{{ detectionRegions[activeRegion].label }} 区域调整</h3>
-            <div class="region-size-controls">
-              <label>宽度</label>
+  <div class="container py-3">
+    <div class="row justify-content-center">
+      <!-- 上传区域 -->
+      <div class="col-12 mb-4 text-center">
+        <div class="card shadow-sm border-0 p-3 mx-auto" style="max-width: 400px;">
+          <div class="card-body">
+            <h5 class="card-title mb-3">选择照片</h5>
+            <label class="btn btn-primary d-block mx-auto" style="max-width: 200px;">
               <input 
-                type="range" 
-                v-model="detectionRegions[activeRegion].width" 
-                :min="20" 
-                :max="imageWidth / 2" 
-                class="region-slider"
-              />
-              
-              <label>高度</label>
-              <input 
-                type="range" 
-                v-model="detectionRegions[activeRegion].height" 
-                :min="20" 
-                :max="imageHeight / 2" 
-                class="region-slider"
-              />
-            </div>
+                type="file" 
+                accept="image/*" 
+                @change="handleFileSelect" 
+                class="d-none"
+              >
+              <i class="bi bi-upload me-2"></i> 上传照片
+            </label>
+            <small class="text-muted d-block mt-2">请上传一张清晰的正面照片</small>
           </div>
         </div>
       </div>
-      
-      <!-- 检测结果展示 -->
-      <div class="detection-results">
-        <h3>检测结果</h3>
-        <div class="color-results">
-          <div 
-            v-for="(region, key) in detectionRegions" 
-            :key="key"
-            class="color-result-item"
-            @click="setActiveRegion(key)"
-          >
-            <span class="color-label">{{ region.label }}:</span>
-            <div 
-              class="color-preview" 
-              :style="{ backgroundColor: region.color }"
-            ></div>
-            <span class="color-hex">{{ region.color }}</span>
+
+      <!-- 照片编辑和结果区域 -->
+      <div v-if="imageUrl" class="col-12">
+        <div class="row g-4">
+          <!-- 照片编辑区 -->
+          <div class="col-md-8 mb-3">
+            <!-- 照片展示区域 -->
+            <div class="card shadow-sm border-0 h-100">
+              <div class="card-body p-2">
+                <div class="photo-container border rounded-3 overflow-hidden position-relative bg-light" ref="editorContainer">
+                  <div 
+                    class="fixed-container" 
+                    @click="handleContainerClick" 
+                    @wheel="handleWheel"
+                  >
+                    <!-- 图片容器 -->
+                    <div 
+                      class="image-container" 
+                      :style="{ 
+                        width: `${imageWidth}px`, 
+                        height: `${imageHeight}px`,
+                        transform: `translate(${imagePositionX}px, ${imagePositionY}px)`
+                      }"
+                      @mousedown="startImageDrag"
+                      :class="{ 'dragging': isImageDragging }"
+                    >
+                      <img 
+                        :src="imageUrl" 
+                        alt="上传的照片" 
+                        class="uploaded-image" 
+                        ref="uploadedImage"
+                      />
+                      
+                      <!-- 各面部区域的检测椭圆 -->
+                      <div 
+                        v-for="(region, key) in detectionRegions" 
+                        :key="key"
+                        class="detection-region"
+                        :class="{ 'active': activeRegion === key }"
+                        :style="{
+                          width: `${region.width}px`,
+                          height: `${region.height}px`,
+                          left: `${region.x}px`,
+                          top: `${region.y}px`,
+                          backgroundColor: region.color,
+                          borderColor: activeRegion === key ? '#00aaff' : 'rgba(255,255,255,0.5)'
+                        }"
+                        @mousedown.stop="startDrag($event, key)"
+                        @click.stop="setActiveRegion(key)"
+                      >
+                        <span class="region-label">{{ region.label }}</span>
+                      </div>
+                    </div>
+                    
+                    <!-- 缩放指示 -->
+                    <div class="zoom-tip">
+                      <i class="bi bi-zoom-in me-1"></i>鼠标悬停于照片上，可使用滚轮放大缩小
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 操作提示 -->
+                <div class="alert alert-info mt-3 mb-0 py-2 small">
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <div>拖动照片可调整位置，点击圆形区域可进行细节调整</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 区域调整控件 -->
+            <div v-if="activeRegion" class="card mt-3 shadow-sm border-0">
+              <div class="card-header bg-light">
+                <h5 class="card-title mb-0 text-center">{{ detectionRegions[activeRegion].label }} 区域调整</h5>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label class="form-label d-flex justify-content-between">
+                    <span>宽度</span>
+                    <span class="text-muted small">{{ Math.round(detectionRegions[activeRegion].width) }}px</span>
+                  </label>
+                  <input 
+                    type="range" 
+                    class="form-range" 
+                    v-model="detectionRegions[activeRegion].width" 
+                    :min="20" 
+                    :max="imageWidth / 2"
+                  />
+                </div>
+                <div class="mb-0">
+                  <label class="form-label d-flex justify-content-between">
+                    <span>高度</span>
+                    <span class="text-muted small">{{ Math.round(detectionRegions[activeRegion].height) }}px</span>
+                  </label>
+                  <input 
+                    type="range" 
+                    class="form-range" 
+                    v-model="detectionRegions[activeRegion].height" 
+                    :min="20" 
+                    :max="imageHeight / 2"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-        
-        <div class="action-buttons">
-          <button 
-            class="btn primary" 
-            @click="detectColors"
-          >
-            检测颜色
-          </button>
+          
+          <!-- 检测结果展示 -->
+          <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-0 h-100">
+              <div class="card-header bg-light">
+                <h5 class="mb-0 text-center">检测结果</h5>
+              </div>
+              <div class="card-body p-3">
+                <div class="row g-3">
+                  <div 
+                    v-for="(region, key) in detectionRegions" 
+                    :key="key"
+                    class="col-12 col-sm-6 col-md-12"
+                    @click="setActiveRegion(key)"
+                  >
+                    <div class="color-result-item d-flex align-items-center p-2 border rounded-3" :class="{'bg-light': activeRegion === key}">
+                      <span class="me-2 fw-medium">{{ region.label }}:</span>
+                      <div 
+                        class="color-preview me-2 border" 
+                        :style="{ backgroundColor: region.color }"
+                      ></div>
+                      <span class="small text-monospace ms-auto">{{ region.color }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer bg-white border-0 text-center p-3">
+                <button 
+                  class="btn btn-primary btn-lg px-4 rounded-3 shadow-sm" 
+                  @click="detectColors"
+                >
+                  <i class="bi bi-eyedropper me-2"></i>检测颜色
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -641,78 +689,20 @@ const handleWheel = (event) => {
 </script>
 
 <style scoped>
-.photo-detection {
-  width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
+/* 保留必要的自定义样式，其他使用Bootstrap类 */
+.photo-container {
   position: relative;
-  /* 去掉固定的最小高度，允许内容自然伸展 */
-  overflow: visible; /* 允许内容正常溢出 */
-}
-
-.upload-section {
-  text-align: center;
-  margin-bottom: 15px;
-}
-
-.upload-label {
-  display: inline-block;
-  cursor: pointer;
-}
-
-.file-input {
-  display: none;
-}
-
-.upload-button {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: var(--color-primary);
-  color: white;
-  border-radius: var(--border-radius);
-  transition: all 0.3s;
-  font-size: 1.1rem;
-}
-
-.upload-button:hover {
-  background-color: var(--color-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.upload-help {
-  margin-top: 10px;
-  color: var(--color-text-secondary);
-  font-size: 14px;
-}
-
-.photo-editor {
-  display: flex;
-  flex-direction: row;
-  gap: 15px;
-  flex: 1;
-  overflow: visible; /* 允许内容正常溢出 */
-}
-
-.editor-container {
-  flex: 1;
-  position: relative;
-  max-width: 65%;
-}
-
-/* 固定大小的容器，3:4比例 */
-.fixed-container {
   width: 100%;
   height: 0;
   padding-bottom: 133.33%; /* 3:4比例 */
-  margin: 0 auto;
-  position: relative;
-  overflow: hidden;
-  border: 2px solid var(--color-border);
-  border-radius: var(--border-radius);
-  background-color: var(--color-background-soft);
+}
+
+.fixed-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .image-container {
@@ -731,109 +721,6 @@ const handleWheel = (event) => {
   height: 100%;
   object-fit: cover;
   display: block;
-}
-
-/* 裁剪框样式 */
-.crop-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-}
-
-.crop-corners {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border: 2px dashed rgba(255, 255, 255, 0.7);
-  box-sizing: border-box;
-}
-
-.crop-corner {
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  border: 2px solid #fff;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.crop-corner.top-left {
-  top: -8px;
-  left: -8px;
-}
-
-.crop-corner.top-right {
-  top: -8px;
-  right: -8px;
-}
-
-.crop-corner.bottom-left {
-  bottom: -8px;
-  left: -8px;
-}
-
-.crop-corner.bottom-right {
-  bottom: -8px;
-  right: -8px;
-}
-
-.crop-guidelines {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-}
-
-.crop-guideline {
-  position: absolute;
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
-.crop-guideline.horizontal-top {
-  top: 33.3%;
-  left: 0;
-  right: 0;
-  height: 1px;
-}
-
-.crop-guideline.horizontal-middle {
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-}
-
-.crop-guideline.horizontal-bottom {
-  top: 66.7%;
-  left: 0;
-  right: 0;
-  height: 1px;
-}
-
-.crop-guideline.vertical-left {
-  top: 0;
-  bottom: 0;
-  left: 33.3%;
-  width: 1px;
-}
-
-.crop-guideline.vertical-middle {
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 1px;
-}
-
-.crop-guideline.vertical-right {
-  top: 0;
-  bottom: 0;
-  left: 66.7%;
-  width: 1px;
 }
 
 .detection-region {
@@ -862,186 +749,21 @@ const handleWheel = (event) => {
   pointer-events: none;
 }
 
-.editor-controls {
-  margin-top: 10px;
-  padding: 10px;
-  background-color: var(--color-background-soft);
-  border-radius: var(--border-radius);
-}
-
-.region-controls {
-  margin-bottom: 15px;
-}
-
-.region-controls h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  text-align: center;
-}
-
-.region-slider {
-  flex: 1;
-  height: 6px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: var(--color-border);
-  outline: none;
-  border-radius: 3px;
-}
-
-.region-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  background: var(--color-primary);
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.region-size-controls {
-  display: grid;
-  padding: 15px;
-  grid-template-columns: auto 1fr;
-  gap: 10px;
-  align-items: center;
-}
-
-.detection-results {
-  flex: 1;
-  padding: 15px;
-  background-color: var(--color-background-soft);
-  border-radius: var(--border-radius);
-  overflow: visible;
-
-  flex-direction: column;
-}
-
-.detection-results h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  text-align: center;
-}
-
-.color-results {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 15px;
-  margin: 15px 0;
-  flex: 1;
-}
-
-.color-result-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  cursor: pointer;
-  padding: 10px;
-  border-radius: var(--border-radius);
-  transition: background-color 0.3s;
-}
-
-.color-result-item:hover {
-  background-color: var(--color-background-mute);
-}
-
 .color-preview {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  border: 2px solid var(--color-border);
 }
 
-.color-hex {
-  font-size: 14px;
-  font-family: monospace;
-}
-
-.action-buttons {
-  margin-top: 15px;
-  text-align: center;
-  bottom: 0;
-  background-color: var(--color-background-soft);
-  padding-bottom: 5px;
-}
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: var(--border-radius);
+.color-result-item {
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s;
-  font-size: 1.1rem;
+  transition: all 0.2s ease;
 }
 
-.btn.primary {
-  background-color: var(--color-primary);
-  color: white;
-}
-
-.btn.secondary {
-  background-color: var(--color-background);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-}
-
-.btn:hover:not(:disabled) {
+.color-result-item:hover {
+  background-color: rgba(0,0,0,0.05);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* 响应式设计优化 */
-@media (max-width: 768px) {
-  .photo-detection {
-    height: auto;
-    max-height: none; /* 移除最大高度限制 */
-    padding-bottom: 20px; /* 底部增加一些间距 */
-  }
-  
-  .photo-editor {
-    flex-direction: column;
-  }
-  
-  .editor-container {
-    max-width: 100%;
-    margin-bottom: 15px; /* 添加底部边距 */
-  }
-  
-  .fixed-container {
-    padding-bottom: 100%; /* 移动端使用1:1比例 */
-  }
-  
-  .detection-results {
-    min-height: 240px; /* 确保在小屏幕上有一个最小高度 */
-    height: auto; /* 允许自动伸展 */
-  }
-  
-  .color-results {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* 调整网格大小适应小屏幕 */
-  }
-  
-
-}
-
-.crop-actions {
-  margin-top: 15px;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
-.crop-mode-tip {
-  margin-top: 5px;
-  text-align: center;
-  font-size: 14px;
-  color: var(--color-text-secondary);
+  box-shadow: 0 3px 5px rgba(0,0,0,0.1);
 }
 
 .zoom-tip {
@@ -1054,8 +776,24 @@ const handleWheel = (event) => {
   font-size: 12px;
   text-shadow: 0 0 3px rgba(0,0,0,0.8);
   pointer-events: none;
-  background-color: rgba(0,0,0,0.3);
-  padding: 3px 0;
-  opacity: 0.7;
+  background-color: rgba(0,0,0,0.5);
+  padding: 6px 0;
+  opacity: 0.8;
+  border-radius: 20px;
+  margin: 0 10%;
+  backdrop-filter: blur(2px);
+}
+
+/* 确保在移动设备上也能正确显示 */
+@media (max-width: 767.98px) {
+  .photo-container {
+    padding-bottom: 100%; /* 移动端使用1:1比例 */
+  }
+  
+  .zoom-tip {
+    font-size: 10px;
+    padding: 4px 0;
+    margin: 0 5%;
+  }
 }
 </style> 
