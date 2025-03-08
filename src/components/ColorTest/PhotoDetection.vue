@@ -1,5 +1,5 @@
 <template>
-  <div class="container py-3">
+  <div class="container py-3 photo-detection-container">
     <div class="row justify-content-center">
       <!-- 上传区域 -->
       <div class="col-12 mb-4 text-center">
@@ -161,7 +161,7 @@
               </div>
               <div class="card-footer border-0 text-center p-3">
                 <button 
-                  class="btn btn-primary btn-lg px-4 rounded-3 shadow-sm" 
+                  class="btn btn-primary btn-lg px-4 rounded-3 shadow-sm detect-button" 
                   @click="detectColors"
                 >
                   <i class="bi bi-eyedropper me-2"></i>检测颜色
@@ -762,6 +762,13 @@ const handleTouchEnd = () => {
 </script>
 
 <style scoped>
+.photo-detection-container {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* 增强iOS的滚动体验 */
+  padding-bottom: 80px; /* 增加底部padding，确保最后的按钮在滚动时也能看到 */
+}
+
 .photo-container {
   aspect-ratio: 3/4;
   position: relative;
@@ -840,6 +847,12 @@ const handleTouchEnd = () => {
   border-radius: 4px;
 }
 
+/* 强化检测按钮的可见性 */
+.detect-button {
+  position: relative;
+  z-index: 5;
+}
+
 @media (max-width: 768px) {
   .photo-container {
     aspect-ratio: 1;
@@ -853,6 +866,18 @@ const handleTouchEnd = () => {
   
   .detection-region {
     border-width: 1.5px;
+  }
+  
+  /* 在移动设备上增强可滚动性 */
+  .photo-detection-container {
+    padding-bottom: 100px;
+  }
+  
+  /* 确保检测按钮在移动设备上足够大和明显 */
+  .detect-button {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.75rem 0;
   }
 }
 </style> 

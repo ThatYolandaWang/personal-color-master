@@ -4,9 +4,73 @@
   box-sizing: border-box;
 }
 
+:root {
+  /* 基础变量 */
+  --border-radius: 0.5rem;
+  --transition-speed: 0.3s;
+}
+
 body {
   font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f5f5f5;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  transition: background-color var(--transition-speed) ease, 
+              color var(--transition-speed) ease;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--bs-body-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--bs-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--bs-primary-hover, var(--bs-primary-dark, var(--bs-primary)));
+}
+
+/* 通用元素样式 */
+a {
+  color: var(--bs-primary);
+  text-decoration: none;
+  transition: color var(--transition-speed) ease;
+}
+
+a:hover {
+  color: var(--color-hover);
+}
+
+/* 卡片和容器样式 */
+.card {
+  border-radius: var(--border-radius);
+  transition: background-color var(--transition-speed) ease, 
+              border-color var(--transition-speed) ease,
+              box-shadow var(--transition-speed) ease;
+}
+
+/* 按钮通用样式 */
+.btn {
+  border-radius: var(--border-radius);
+  transition: all var(--transition-speed) ease;
+}
+
+/* 表单元素样式 */
+input, select, textarea {
+  border-radius: var(--border-radius);
+  transition: all var(--transition-speed) ease;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--color-textSecondary);
+  opacity: 0.7;
 }

@@ -16,7 +16,7 @@
       <div class="card-body text-center p-5">
         <div class="display-1 mb-4">📊</div>
         <h2 class="h3 mb-3">暂无分析报告</h2>
-        <p class="text-muted mb-4">请先进行个人色彩测试以生成您的专属分析报告</p>
+        <p class="mb-4">请先进行个人色彩测试以生成您的专属分析报告</p>
         <button class="btn btn-primary btn-lg px-4" @click="navigateToColorTest">
           开始测试
           <i class="bi bi-arrow-right ms-2"></i>

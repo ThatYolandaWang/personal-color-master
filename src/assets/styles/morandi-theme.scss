@@ -1,0 +1,264 @@
+// Morandi 主题变量
+@use "sass:map";
+@use "sass:color";
+
+$morandi-colors: (
+  "blue": #8e9fbc,
+  "green": #a6b8aa,
+  "pink": #d8c0c3,
+  "beige": #e0d4c6,
+  "gray": #b3b1a9,
+  "brown": #b19d91,
+  "mint": #bcd1c4,
+  "lavender": #c6c2d3,
+  "peach": #e8cfc1,
+  "sage": #b5c0ab
+);
+
+// 主要按钮颜色 - 从粉色调整为棕色
+$morandi-button-primary: map.get($morandi-colors, "brown");
+
+// 主题颜色变量
+$morandi-primary: map.get($morandi-colors, "blue");
+$morandi-secondary: map.get($morandi-colors, "gray");
+$morandi-success: map.get($morandi-colors, "green");
+$morandi-info: map.get($morandi-colors, "mint");
+$morandi-warning: map.get($morandi-colors, "peach");
+$morandi-danger: map.get($morandi-colors, "pink");
+$morandi-light: #f5f2ee;
+$morandi-dark: #5c5a57;
+
+// 背景和文本颜色
+$morandi-bg-light: #f5f2ee;
+$morandi-bg-dark: #5c5a57;
+$morandi-text-light: #f5f2ee;
+$morandi-text-dark: #3c3a38;
+
+// 定义用于获取RGB通道的函数
+@function get-r($color) {
+  @return color.channel($color, "red", $space: rgb);
+}
+
+@function get-g($color) {
+  @return color.channel($color, "green", $space: rgb);
+}
+
+@function get-b($color) {
+  @return color.channel($color, "blue", $space: rgb);
+}
+
+// 莫兰迪明亮主题
+[data-bs-theme="morandi-light"] {
+  // 基础颜色
+  --bs-primary: #{$morandi-button-primary};
+  --bs-secondary: #{$morandi-secondary};
+  --bs-success: #{$morandi-success};
+  --bs-info: #{$morandi-info};
+  --bs-warning: #{$morandi-warning};
+  --bs-danger: #{$morandi-danger};
+  --bs-light: #{$morandi-light};
+  --bs-dark: #{$morandi-dark};
+  
+  // 文本和背景颜色
+  --bs-body-bg: #{$morandi-bg-light};
+  --bs-body-color: #{$morandi-text-dark};
+  
+  // 按钮颜色
+  --bs-primary-rgb: #{get-r($morandi-button-primary)}, #{get-g($morandi-button-primary)}, #{get-b($morandi-button-primary)};
+  --bs-secondary-rgb: #{get-r($morandi-secondary)}, #{get-g($morandi-secondary)}, #{get-b($morandi-secondary)};
+  --bs-success-rgb: #{get-r($morandi-success)}, #{get-g($morandi-success)}, #{get-b($morandi-success)};
+  --bs-info-rgb: #{get-r($morandi-info)}, #{get-g($morandi-info)}, #{get-b($morandi-info)};
+  --bs-warning-rgb: #{get-r($morandi-warning)}, #{get-g($morandi-warning)}, #{get-b($morandi-warning)};
+  --bs-danger-rgb: #{get-r($morandi-danger)}, #{get-g($morandi-danger)}, #{get-b($morandi-danger)};
+  
+  // 边框颜色
+  --bs-border-color: #{color.adjust($morandi-bg-light, $lightness: -10%)};
+  
+  // 链接颜色
+  --bs-link-color: #{$morandi-button-primary};
+  --bs-link-hover-color: #{color.adjust($morandi-button-primary, $lightness: -10%)};
+  
+  // 自定义变量
+  --color-primary: #{$morandi-primary};
+  --color-secondary: #{$morandi-secondary};
+  --color-accent: #{$morandi-info};
+  --color-background: #{$morandi-bg-light};
+  --color-surface: #{color.adjust($morandi-bg-light, $lightness: 2%)};
+  --color-card: #{color.adjust($morandi-bg-light, $lightness: 5%)};
+  --color-text: #{$morandi-text-dark};
+  --color-textSecondary: #{color.adjust($morandi-text-dark, $lightness: 20%)};
+  --color-border: #{color.adjust($morandi-bg-light, $lightness: -10%)};
+  --color-borderLight: #{color.adjust($morandi-bg-light, $lightness: -5%)};
+  --color-hover: #{color.adjust($morandi-bg-light, $lightness: -5%)};
+  --color-active: #{color.adjust($morandi-bg-light, $lightness: -8%)};
+  --color-overlay: rgba(92, 90, 87, 0.1);
+  --color-shadow: rgba(92, 90, 87, 0.15);
+}
+
+// 获取亮化颜色的RGB通道
+@function get-r-light($color, $amount) {
+  $light-color: color.adjust($color, $lightness: $amount);
+  @return color.channel($light-color, "red", $space: rgb);
+}
+
+@function get-g-light($color, $amount) {
+  $light-color: color.adjust($color, $lightness: $amount);
+  @return color.channel($light-color, "green", $space: rgb);
+}
+
+@function get-b-light($color, $amount) {
+  $light-color: color.adjust($color, $lightness: $amount);
+  @return color.channel($light-color, "blue", $space: rgb);
+}
+
+// 莫兰迪暗色主题
+[data-bs-theme="morandi-dark"] {
+  // 基础颜色
+  --bs-primary: #{color.adjust($morandi-button-primary, $lightness: 10%)};
+  --bs-secondary: #{color.adjust($morandi-secondary, $lightness: 10%)};
+  --bs-success: #{color.adjust($morandi-success, $lightness: 10%)};
+  --bs-info: #{color.adjust($morandi-info, $lightness: 10%)};
+  --bs-warning: #{color.adjust($morandi-warning, $lightness: 10%)};
+  --bs-danger: #{color.adjust($morandi-danger, $lightness: 10%)};
+  --bs-light: #{$morandi-light};
+  --bs-dark: #{$morandi-dark};
+  
+  // 文本和背景颜色
+  --bs-body-bg: #{$morandi-bg-dark};
+  --bs-body-color: #{$morandi-text-light};
+  
+  // 按钮颜色
+  --bs-primary-rgb: #{get-r-light($morandi-button-primary, 10%)}, #{get-g-light($morandi-button-primary, 10%)}, #{get-b-light($morandi-button-primary, 10%)};
+  --bs-secondary-rgb: #{get-r-light($morandi-secondary, 10%)}, #{get-g-light($morandi-secondary, 10%)}, #{get-b-light($morandi-secondary, 10%)};
+  --bs-success-rgb: #{get-r-light($morandi-success, 10%)}, #{get-g-light($morandi-success, 10%)}, #{get-b-light($morandi-success, 10%)};
+  --bs-info-rgb: #{get-r-light($morandi-info, 10%)}, #{get-g-light($morandi-info, 10%)}, #{get-b-light($morandi-info, 10%)};
+  --bs-warning-rgb: #{get-r-light($morandi-warning, 10%)}, #{get-g-light($morandi-warning, 10%)}, #{get-b-light($morandi-warning, 10%)};
+  --bs-danger-rgb: #{get-r-light($morandi-danger, 10%)}, #{get-g-light($morandi-danger, 10%)}, #{get-b-light($morandi-danger, 10%)};
+  
+  // 边框颜色
+  --bs-border-color: #{color.adjust($morandi-bg-dark, $lightness: 15%)};
+  
+  // 链接颜色
+  --bs-link-color: #{color.adjust($morandi-button-primary, $lightness: 15%)};
+  --bs-link-hover-color: #{color.adjust($morandi-button-primary, $lightness: 25%)};
+  
+  // 自定义变量
+  --color-primary: #{color.adjust($morandi-primary, $lightness: 10%)};
+  --color-secondary: #{color.adjust($morandi-secondary, $lightness: 10%)};
+  --color-accent: #{color.adjust($morandi-info, $lightness: 10%)};
+  --color-background: #{$morandi-bg-dark};
+  --color-surface: #{color.adjust($morandi-bg-dark, $lightness: 5%)};
+  --color-card: #{color.adjust($morandi-bg-dark, $lightness: 10%)};
+  --color-text: #{$morandi-text-light};
+  --color-textSecondary: #{color.adjust($morandi-text-light, $lightness: -15%)};
+  --color-border: #{color.adjust($morandi-bg-dark, $lightness: 15%)};
+  --color-borderLight: #{color.adjust($morandi-bg-dark, $lightness: 10%)};
+  --color-hover: #{color.adjust($morandi-bg-dark, $lightness: 7%)};
+  --color-active: #{color.adjust($morandi-bg-dark, $lightness: 12%)};
+  --color-overlay: rgba(245, 242, 238, 0.1);
+  --color-shadow: rgba(0, 0, 0, 0.3);
+}
+
+// 全局按钮样式调整
+.btn-primary {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+  color: var(--bs-tertiary-bg);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  
+  &:hover, &:focus, &:active {
+    background-color: color.adjust($morandi-button-primary, $lightness: -7%);
+    border-color: color.adjust($morandi-button-primary, $lightness: -10%);
+  }
+}
+
+// 增大按钮的圆角
+.btn {
+  border-radius: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
+}
+
+.btn-outline-primary {
+  color: var(--bs-primary);
+  border-color: var(--bs-primary);
+  
+  &:hover {
+    background-color: var(--bs-primary);
+    color: white;
+  }
+}
+
+.btn-secondary {
+  background-color: var(--bs-secondary);
+  border-color: var(--bs-secondary);
+  
+  &:hover {
+    background-color: color.adjust($morandi-secondary, $lightness: -7%);
+    border-color: color.adjust($morandi-secondary, $lightness: -10%);
+  }
+}
+
+// 卡片样式
+.card {
+  border-color: var(--bs-border-color);
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+  
+  .card-header {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    border-bottom: 1px solid var(--bs-border-color);
+    padding: 1rem 1.25rem;
+  }
+  
+  .card-body {
+    padding: 1.25rem;
+  }
+  
+  .card-footer {
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+    border-top: 1px solid var(--bs-border-color);
+    padding: 1rem 1.25rem;
+  }
+}
+
+// 输入框样式
+.form-control {
+  border-color: var(--bs-border-color);
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  
+  &:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+  }
+}
+
+// 暗色主题下的表单元素调整
+[data-bs-theme="morandi-dark"] {
+  .form-control {
+    background-color: color.adjust($morandi-bg-dark, $lightness: 5%);
+    color: $morandi-text-light;
+    
+    &::placeholder {
+      color: color.adjust($morandi-text-light, $lightness: -25%);
+    }
+  }
+  
+  .input-group-text {
+    background-color: color.adjust($morandi-bg-dark, $lightness: 10%);
+    color: $morandi-text-light;
+  }
+} 

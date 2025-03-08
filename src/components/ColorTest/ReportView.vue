@@ -223,8 +223,7 @@ onMounted(() => {
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-  background-color: var(--color-surface);
-  border-radius: var(--border-radius);
+
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   display: flex;
@@ -431,7 +430,6 @@ onMounted(() => {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .result-container {
-    padding: 1.5rem;
     border-radius: 0;
     max-height: none;
   }

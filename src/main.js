@@ -11,6 +11,9 @@ import 'bootstrap/dist/js/bootstrap.bundle.js'
 // 引入Bootstrap Icons
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
+// 引入莫兰迪主题
+import './assets/styles/morandi-theme.scss'
+
 // 引入主题初始化函数
 import { initTheme } from './utils/theme'
 
@@ -18,7 +21,7 @@ const app = createApp(App)
 app.use(router)
 app.use(ElementPlus)
 
-// 初始化主题
+// 初始化主题 - 在应用挂载前初始化
 initTheme()
 
 app.mount('#app')
