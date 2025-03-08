@@ -11,7 +11,14 @@ import 'bootstrap/dist/js/bootstrap.bundle.js'
 // 引入Bootstrap Icons
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
+// 引入主题初始化函数
+import { initTheme } from './utils/theme'
+
 const app = createApp(App)
 app.use(router)
 app.use(ElementPlus)
+
+// 初始化主题
+initTheme()
+
 app.mount('#app')

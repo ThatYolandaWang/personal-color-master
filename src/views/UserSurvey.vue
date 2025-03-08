@@ -1,63 +1,77 @@
 <template>
-  <div class="user-survey">
-    <div class="survey-container">
-      <h1>个人信息收集</h1>
-      <p class="description">请填写以下信息，帮助我们为您提供更精准的色彩分析。</p>
-      
-      <form @submit.prevent="submitForm" class="survey-form">
-        <div class="form-group">
-          <label for="nickname">昵称</label>
-          <input 
-            type="text" 
-            id="nickname" 
-            v-model="userInfo.nickname" 
-            required
-            placeholder="请输入您的昵称"
-          >
-        </div>
-        
-        <div class="form-group">
-          <label>性别</label>
-          <div class="radio-group">
-            <label class="radio-label">
-              <input type="radio" v-model="userInfo.gender" value="女" checked>
-              <span>女</span>
-            </label>
-            <label class="radio-label">
-              <input type="radio" v-model="userInfo.gender" value="男">
-              <span>男</span>
-            </label>
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-8 col-lg-6">
+          <div class="p-4">
+            <h1 class="display-5 text-center mb-3">个人信息收集</h1>
+            <p class="lead text-center mb-4">请填写以下信息，帮助我们为您提供更精准的色彩分析。</p>
+            
+            <form @submit.prevent="submitForm">
+              <div class="mb-4">
+                <label for="nickname" class="form-label">昵称</label>
+                <input 
+                  type="text" 
+                  class="form-control form-control-lg"
+                  id="nickname" 
+                  v-model="userInfo.nickname" 
+                  required
+                  placeholder="请输入您的昵称"
+                >
+              </div>
+              
+              <div class="mb-4">
+                <label class="form-label d-block">性别</label>
+                <div class="btn-group" role="group">
+                  <input type="radio" class="btn-check" name="gender" id="female" v-model="userInfo.gender" value="女" checked>
+                  <label class="btn btn-outline-primary" for="female">女</label>
+                  
+                  <input type="radio" class="btn-check" name="gender" id="male" v-model="userInfo.gender" value="男">
+                  <label class="btn btn-outline-primary" for="male">男</label>
+                </div>
+              </div>
+              
+              <div class="mb-4">
+                <label for="age" class="form-label">年龄段</label>
+                <select 
+                  id="age" 
+                  class="form-select form-select-lg"
+                  v-model="userInfo.age" 
+                  required
+                >
+                  <option value="">请选择年龄段</option>
+                  <option value="18岁以下">18岁以下</option>
+                  <option value="18-25岁">18-25岁</option>
+                  <option value="26-35岁">26-35岁</option>
+                  <option value="36-45岁">36-45岁</option>
+                  <option value="46岁以上">46岁以上</option>
+                </select>
+              </div>
+              
+              <div class="mb-4">
+                <label for="occupation" class="form-label">职业</label>
+                <select 
+                  id="occupation" 
+                  class="form-select form-select-lg"
+                  v-model="userInfo.occupation"
+                >
+                  <option value="">请选择职业</option>
+                  <option value="学生">学生</option>
+                  <option value="上班族">上班族</option>
+                  <option value="自由职业">自由职业</option>
+                  <option value="家庭主妇">家庭主妇</option>
+                  <option value="其他">其他</option>
+                </select>
+              </div>
+              
+              <div class="d-grid gap-2 col-8 mx-auto">
+                <button type="submit" class="btn btn-primary btn-lg">
+                  开始测试
+                  <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+              </div>
+            </form>
           </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="age">年龄段</label>
-          <select id="age" v-model="userInfo.age" required>
-            <option value="">请选择年龄段</option>
-            <option value="18岁以下">18岁以下</option>
-            <option value="18-25岁">18-25岁</option>
-            <option value="26-35岁">26-35岁</option>
-            <option value="36-45岁">36-45岁</option>
-            <option value="46岁以上">46岁以上</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="occupation">职业</label>
-          <select id="occupation" v-model="userInfo.occupation">
-            <option value="">请选择职业</option>
-            <option value="学生">学生</option>
-            <option value="上班族">上班族</option>
-            <option value="自由职业">自由职业</option>
-            <option value="家庭主妇">家庭主妇</option>
-            <option value="其他">其他</option>
-          </select>
-        </div>
-        
-        <div class="form-actions">
-          <button type="submit" class="btn primary">开始测试</button>
-        </div>
-      </form>
+      </div>
     </div>
   </div>
 </template>
@@ -87,127 +101,5 @@ const submitForm = () => {
 </script>
 
 <style scoped>
-.user-survey {
-  width: 100%;
-  max-width: var(--content-max-width);
-  padding: 2rem;
-}
-
-.survey-container {
-  background-color: var(--color-surface);
-  padding: 3rem 2rem;
-  border-radius: var(--border-radius);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-h1 {
-  color: var(--color-text);
-  font-size: 2rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.description {
-  color: var(--color-text);
-  font-size: 1.1rem;
-  line-height: 1.6;
-  margin-bottom: 2rem;
-  text-align: center;
-  opacity: 0.9;
-}
-
-.survey-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-label {
-  font-weight: 500;
-  color: var(--color-text);
-}
-
-input[type="text"],
-select {
-  padding: 0.8rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius);
-  font-family: inherit;
-  font-size: 1rem;
-  background-color: var(--color-surface);
-  color: var(--color-text);
-  transition: border-color 0.3s ease;
-}
-
-input[type="text"]:focus,
-select:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-.radio-group {
-  display: flex;
-  gap: 1.5rem;
-}
-
-.radio-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-
-.form-actions {
-  margin-top: 1rem;
-  display: flex;
-  justify-content: center;
-}
-
-.btn {
-  padding: 1rem 2rem;
-  border-radius: var(--border-radius);
-  font-weight: 500;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.btn.primary {
-  background-color: var(--color-primary);
-  color: var(--color-surface);
-}
-
-.btn.primary:hover {
-  background-color: var(--color-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .user-survey {
-    padding: 1rem;
-  }
-  
-  .survey-container {
-    padding: 2rem 1rem;
-  }
-  
-  h1 {
-    font-size: 1.8rem;
-  }
-  
-  .description {
-    font-size: 1rem;
-  }
-}
+/* 移除所有自定义样式，完全使用Bootstrap类 */
 </style> 

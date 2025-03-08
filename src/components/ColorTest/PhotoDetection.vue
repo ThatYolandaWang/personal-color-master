@@ -3,19 +3,19 @@
     <div class="row justify-content-center">
       <!-- 上传区域 -->
       <div class="col-12 mb-4 text-center">
-        <div class="card shadow-sm border-0 p-3 mx-auto" style="max-width: 400px;">
-          <div class="card-body">
-            <h5 class="card-title mb-3">选择照片</h5>
-            <label class="btn btn-primary d-block mx-auto" style="max-width: 200px;">
+        <div class="border-0 p-3 mx-auto" style="max-width: 400px;">
+          <div >
+            <label class="btn btn-primary btn-lg d-block mx-auto" style="max-width: 200px;">
               <input 
                 type="file" 
                 accept="image/*" 
                 @change="handleFileSelect" 
                 class="d-none"
               >
-              <i class="bi bi-upload me-2"></i> 上传照片
+              <i class="bi bi-upload me-2"></i>
+              {{ imageUrl ? '重新上传照片' : '上传照片' }}
             </label>
-            <small class="text-muted d-block mt-2">请上传一张清晰的正面照片</small>
+            <small v-if="!imageUrl" class="text-secondary d-block mt-2">请上传一张清晰的正面照片</small>
           </div>
         </div>
       </div>
@@ -31,8 +31,11 @@
                 <div class="photo-container border rounded-3 overflow-hidden position-relative bg-light" ref="editorContainer">
                   <div 
                     class="fixed-container" 
-                    @click="handleContainerClick" 
+                    @click="handleContainerClick"
                     @wheel="handleWheel"
+                    @touchstart="handleTouchStart"
+                    @touchmove="handleTouchMove"
+                    @touchend="handleTouchEnd"
                   >
                     <!-- 图片容器 -->
                     <div 
@@ -67,6 +70,7 @@
                           borderColor: activeRegion === key ? '#00aaff' : 'rgba(255,255,255,0.5)'
                         }"
                         @mousedown.stop="startDrag($event, key)"
+                        @touchstart.stop="startDrag($event, key)"
                         @click.stop="setActiveRegion(key)"
                       >
                         <span class="region-label">{{ region.label }}</span>
@@ -75,7 +79,9 @@
                     
                     <!-- 缩放指示 -->
                     <div class="zoom-tip">
-                      <i class="bi bi-zoom-in me-1"></i>鼠标悬停于照片上，可使用滚轮放大缩小
+                      <i class="bi bi-zoom-in me-1"></i>
+                      <span class="d-none d-md-inline">鼠标悬停于照片上，可使用滚轮放大缩小</span>
+                      <span class="d-md-none">双指捏合可放大缩小照片</span>
                     </div>
                   </div>
                 </div>
@@ -84,7 +90,8 @@
                 <div class="alert alert-info mt-3 mb-0 py-2 small">
                   <div class="d-flex align-items-center">
                     <i class="bi bi-info-circle-fill me-2"></i>
-                    <div>拖动照片可调整位置，点击圆形区域可进行细节调整</div>
+                    <div class="d-none d-md-block">拖动照片可调整位置，点击圆形区域可进行细节调整</div>
+                    <div class="d-md-none">拖动照片调整位置，点击圆形区域调整大小</div>
                   </div>
                 </div>
               </div>
@@ -92,14 +99,14 @@
             
             <!-- 区域调整控件 -->
             <div v-if="activeRegion" class="card mt-3 shadow-sm border-0">
-              <div class="card-header bg-light">
+              <div class="card-header">
                 <h5 class="card-title mb-0 text-center">{{ detectionRegions[activeRegion].label }} 区域调整</h5>
               </div>
               <div class="card-body">
                 <div class="mb-3">
                   <label class="form-label d-flex justify-content-between">
                     <span>宽度</span>
-                    <span class="text-muted small">{{ Math.round(detectionRegions[activeRegion].width) }}px</span>
+                    <span class="text-secondary small">{{ Math.round(detectionRegions[activeRegion].width) }}px</span>
                   </label>
                   <input 
                     type="range" 
@@ -112,7 +119,7 @@
                 <div class="mb-0">
                   <label class="form-label d-flex justify-content-between">
                     <span>高度</span>
-                    <span class="text-muted small">{{ Math.round(detectionRegions[activeRegion].height) }}px</span>
+                    <span class="text-secondary small">{{ Math.round(detectionRegions[activeRegion].height) }}px</span>
                   </label>
                   <input 
                     type="range" 
@@ -129,7 +136,7 @@
           <!-- 检测结果展示 -->
           <div class="col-md-4 mb-3">
             <div class="card shadow-sm border-0 h-100">
-              <div class="card-header bg-light">
+              <div class="card-header">
                 <h5 class="mb-0 text-center">检测结果</h5>
               </div>
               <div class="card-body p-3">
@@ -140,7 +147,8 @@
                     class="col-12 col-sm-6 col-md-12"
                     @click="setActiveRegion(key)"
                   >
-                    <div class="color-result-item d-flex align-items-center p-2 border rounded-3" :class="{'bg-light': activeRegion === key}">
+                    <div class="color-result-item d-flex align-items-center p-2 border rounded-3"
+                         :class="{'bg-light': activeRegion === key}">
                       <span class="me-2 fw-medium">{{ region.label }}:</span>
                       <div 
                         class="color-preview me-2 border" 
@@ -151,7 +159,7 @@
                   </div>
                 </div>
               </div>
-              <div class="card-footer bg-white border-0 text-center p-3">
+              <div class="card-footer border-0 text-center p-3">
                 <button 
                   class="btn btn-primary btn-lg px-4 rounded-3 shadow-sm" 
                   @click="detectColors"
@@ -179,11 +187,16 @@ const uploadedImage = ref(null);
 const editorContainer = ref(null);
 const imageWidth = ref(600);
 const imageHeight = ref(800);
-const imagePositionX = ref(0); // 图片X位置
-const imagePositionY = ref(0); // 图片Y位置
-const isImageDragging = ref(false); // 是否正在拖动图片
-const imageDragStartX = ref(0); // 图片拖动起始X坐标
-const imageDragStartY = ref(0); // 图片拖动起始Y坐标
+const imagePositionX = ref(0);
+const imagePositionY = ref(0);
+const isImageDragging = ref(false);
+const imageDragStartX = ref(0);
+const imageDragStartY = ref(0);
+
+// 触摸相关状态
+const touchStartX = ref(0);
+const touchStartY = ref(0);
+const lastTouchDistance = ref(0);
 
 // 拖拽状态
 const isDragging = ref(false);
@@ -686,30 +699,86 @@ const handleWheel = (event) => {
     }
   }
 };
+
+// 处理触摸开始
+const handleTouchStart = (event) => {
+  if (event.touches.length === 1) {
+    // 单指触摸 - 移动
+    touchStartX.value = event.touches[0].clientX - imagePositionX.value;
+    touchStartY.value = event.touches[0].clientY - imagePositionY.value;
+  } else if (event.touches.length === 2) {
+    // 双指触摸 - 缩放
+    const touch1 = event.touches[0];
+    const touch2 = event.touches[1];
+    lastTouchDistance.value = Math.hypot(
+      touch2.clientX - touch1.clientX,
+      touch2.clientY - touch1.clientY
+    );
+  }
+};
+
+// 处理触摸移动
+const handleTouchMove = (event) => {
+  event.preventDefault();
+  
+  if (event.touches.length === 1) {
+    // 单指移动
+    const touch = event.touches[0];
+    const newX = touch.clientX - touchStartX.value;
+    const newY = touch.clientY - touchStartY.value;
+    
+    // 限制移动范围
+    const container = editorContainer.value;
+    const containerRect = container.getBoundingClientRect();
+    
+    imagePositionX.value = Math.min(Math.max(newX, -imageWidth.value + 100), containerRect.width - 100);
+    imagePositionY.value = Math.min(Math.max(newY, -imageHeight.value + 100), containerRect.height - 100);
+  } else if (event.touches.length === 2) {
+    // 双指缩放
+    const touch1 = event.touches[0];
+    const touch2 = event.touches[1];
+    const currentDistance = Math.hypot(
+      touch2.clientX - touch1.clientX,
+      touch2.clientY - touch1.clientY
+    );
+    
+    const scale = currentDistance / lastTouchDistance.value;
+    const newWidth = imageWidth.value * scale;
+    const newHeight = imageHeight.value * scale;
+    
+    // 限制缩放范围
+    if (newWidth >= 200 && newWidth <= 2000) {
+      imageWidth.value = newWidth;
+      imageHeight.value = newHeight;
+      lastTouchDistance.value = currentDistance;
+    }
+  }
+};
+
+// 处理触摸结束
+const handleTouchEnd = () => {
+  lastTouchDistance.value = 0;
+};
 </script>
 
 <style scoped>
-/* 保留必要的自定义样式，其他使用Bootstrap类 */
 .photo-container {
+  aspect-ratio: 3/4;
   position: relative;
-  width: 100%;
-  height: 0;
-  padding-bottom: 133.33%; /* 3:4比例 */
+  overflow: hidden;
 }
 
 .fixed-container {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 100%;
+  position: relative;
+  overflow: hidden;
 }
 
 .image-container {
   position: absolute;
   cursor: move;
-  transition: transform 0.1s ease;
-  transform-origin: center;
+  transition: transform 0.1s ease-out;
 }
 
 .image-container.dragging {
@@ -720,80 +789,70 @@ const handleWheel = (event) => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 
 .detection-region {
   position: absolute;
-  border: 2px solid rgba(255,255,255,0.5);
+  border: 2px solid;
   border-radius: 50%;
-  cursor: move;
-  opacity: 0.6;
-  transition: opacity 0.3s, border-color 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.detection-region:hover,
-.detection-region.active {
-  opacity: 0.8;
-  z-index: 10;
-}
-
-.region-label {
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
-  text-shadow: 0 0 3px rgba(0,0,0,0.8);
-  pointer-events: none;
-}
-
-.color-preview {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-}
-
-.color-result-item {
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.color-result-item:hover {
-  background-color: rgba(0,0,0,0.05);
-  transform: translateY(-2px);
-  box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+.detection-region:hover {
+  border-color: #00aaff !important;
+}
+
+.detection-region.active {
+  border-color: #00aaff !important;
+  box-shadow: 0 0 0 2px rgba(0, 170, 255, 0.3);
+}
+
+.region-label {
+  position: absolute;
+  left: 50%;
+  bottom: -25px;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .zoom-tip {
   position: absolute;
   bottom: 10px;
-  left: 0;
-  right: 0;
-  text-align: center;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
   color: white;
+  padding: 4px 12px;
+  border-radius: 15px;
   font-size: 12px;
-  text-shadow: 0 0 3px rgba(0,0,0,0.8);
   pointer-events: none;
-  background-color: rgba(0,0,0,0.5);
-  padding: 6px 0;
-  opacity: 0.8;
-  border-radius: 20px;
-  margin: 0 10%;
-  backdrop-filter: blur(2px);
 }
 
-/* 确保在移动设备上也能正确显示 */
-@media (max-width: 767.98px) {
+.color-preview {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+
+@media (max-width: 768px) {
   .photo-container {
-    padding-bottom: 100%; /* 移动端使用1:1比例 */
+    aspect-ratio: 1;
   }
   
-  .zoom-tip {
+  .region-label {
     font-size: 10px;
-    padding: 4px 0;
-    margin: 0 5%;
+    bottom: -20px;
+    padding: 1px 6px;
+  }
+  
+  .detection-region {
+    border-width: 1.5px;
   }
 }
 </style> 
