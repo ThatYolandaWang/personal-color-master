@@ -1,5 +1,5 @@
 <template>
-  <div class="container py-3 photo-detection-container">
+  <div class="container photo-detection-container">
     <div class="row justify-content-center">
       <!-- 上传区域 -->
       <div class="col-12 mb-4 text-center">
@@ -26,7 +26,7 @@
           <!-- 照片编辑区 -->
           <div class="col-md-8 mb-3">
             <!-- 照片展示区域 -->
-            <div class="card shadow-sm border-0 h-100">
+            <div class="card shadow-sm border-0">
               <div class="card-body p-2">
                 <div class="photo-container border rounded-3 overflow-hidden position-relative bg-light" ref="editorContainer">
                   <div 
@@ -97,6 +97,11 @@
               </div>
             </div>
             
+
+          </div>
+          
+          <!-- 检测结果展示 -->
+          <div class="col-md-4 mb-3">
             <!-- 区域调整控件 -->
             <div v-if="activeRegion" class="card mt-3 shadow-sm border-0">
               <div class="card-header">
@@ -114,6 +119,7 @@
                     v-model="detectionRegions[activeRegion].width" 
                     :min="20" 
                     :max="imageWidth / 2"
+                    @input="handleRangeInteraction"
                   />
                 </div>
                 <div class="mb-0">
@@ -127,17 +133,23 @@
                     v-model="detectionRegions[activeRegion].height" 
                     :min="20" 
                     :max="imageHeight / 2"
+                    @input="handleRangeInteraction"
                   />
                 </div>
               </div>
             </div>
-          </div>
-          
-          <!-- 检测结果展示 -->
-          <div class="col-md-4 mb-3">
-            <div class="card shadow-sm border-0 h-100">
+
+            <div class="card shadow-sm border-0">
               <div class="card-header">
                 <h5 class="mb-0 text-center">检测结果</h5>
+              </div>
+              <div class="card-footer border-0 text-center p-3">
+                <button 
+                  class="btn btn-primary btn-lg px-4 rounded-3 shadow-sm detect-button" 
+                  @click="detectColors"
+                >
+                  <i class="bi bi-eyedropper me-2"></i>检测颜色
+                </button>
               </div>
               <div class="card-body p-3">
                 <div class="row g-3">
@@ -159,24 +171,41 @@
                   </div>
                 </div>
               </div>
-              <div class="card-footer border-0 text-center p-3">
-                <button 
-                  class="btn btn-primary btn-lg px-4 rounded-3 shadow-sm detect-button" 
-                  @click="detectColors"
-                >
-                  <i class="bi bi-eyedropper me-2"></i>检测颜色
-                </button>
-              </div>
             </div>
+
+            <!-- 开始分析按钮 -->
+            <button 
+              class="btn btn-success btn-lg px-4 rounded-3 shadow-sm w-100 mt-3" 
+              @click="startAnalysis"
+              :disabled="!allColorsDetected"
+            >
+              <i class="bi bi-palette-fill me-2"></i>开始分析
+            </button>
+            <small v-if="!allColorsDetected" class="text-secondary d-block mt-2 text-center">
+              请先完成所有区域的颜色检测
+            </small>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- 回到顶部按钮 -->
+    <button 
+      class="btn btn-primary rounded-circle back-to-top-btn shadow" 
+      @click="scrollToTop"
+      v-show="showBackToTop"
+    >
+      <i class="bi bi-arrow-up"></i>
+    </button>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
+
+// 路由器
+const router = useRouter();
 
 // 发射事件
 const emit = defineEmits(['colorsDetected']);
@@ -203,6 +232,10 @@ const isDragging = ref(false);
 const dragStartX = ref(0);
 const dragStartY = ref(0);
 const activeRegion = ref(null);
+
+// 图片容器相关
+const imageContainerRef = ref(null);
+const imageContainerRect = ref(null);
 
 // 检测区域定义
 const detectionRegions = reactive({
@@ -262,6 +295,9 @@ const allColorsDetected = computed(() => {
     region => region.color !== 'rgba(255, 255, 255, 0.5)'
   );
 });
+
+// 回到顶部相关变量
+const showBackToTop = ref(false);
 
 // 处理文件选择
 const handleFileSelect = (event) => {
@@ -324,6 +360,9 @@ const handleFileSelect = (event) => {
 
 // 开始拖动图片
 const startImageDrag = (event) => {
+  // 如果正在拖动检测区域，不允许拖动图片
+  if (isDragging.value) return;
+  
   isImageDragging.value = true;
   
   // 记录起始位置
@@ -381,6 +420,8 @@ const dragImage = (event) => {
   // 更新起始位置
   imageDragStartX.value = event.clientX;
   imageDragStartY.value = event.clientY;
+  
+  // 移除实时颜色计算，提高拖拽流畅度
 };
 
 // 停止拖动图片
@@ -433,40 +474,83 @@ const setActiveRegion = (key) => {
 
 // 开始拖拽区域
 const startDrag = (event, key) => {
+  // 阻止事件传播，避免触发图片拖动
+  event.preventDefault();
+  event.stopPropagation();
+  
   isDragging.value = true;
   activeRegion.value = key;
   
-  // 记录起始位置
+  // 缓存图片容器位置，用于精确计算
+  if (editorContainer.value) {
+    const imageContainer = editorContainer.value.querySelector('.image-container');
+    if (imageContainer) {
+      imageContainerRect.value = imageContainer.getBoundingClientRect();
+    }
+  }
+  
+  // 处理触摸事件
+  if (event.type === 'touchstart') {
+    const touch = event.touches[0];
+    
+    // 精确记录触摸起始位置
+    dragStartX.value = touch.clientX;
+    dragStartY.value = touch.clientY;
+    
+    // 添加事件监听
+    document.addEventListener('touchmove', dragMove, { passive: false });
+    document.addEventListener('touchend', stopDrag);
+    return;
+  }
+  
+  // 处理鼠标事件
   dragStartX.value = event.clientX;
   dragStartY.value = event.clientY;
   
-  // 添加移动和结束拖拽的事件监听
   document.addEventListener('mousemove', dragMove);
   document.addEventListener('mouseup', stopDrag);
-  
-  // 防止事件冒泡
-  event.preventDefault();
 };
 
 // 拖拽移动处理
 const dragMove = (event) => {
   if (!isDragging.value || !activeRegion.value) return;
   
-  const dx = event.clientX - dragStartX.value;
-  const dy = event.clientY - dragStartY.value;
+  // 阻止默认行为和冒泡
+  event.preventDefault();
+  event.stopPropagation();
+  
+  let dx, dy;
+  let clientX, clientY;
+  
+  // 处理触摸事件
+  if (event.type === 'touchmove') {
+    const touch = event.touches[0];
+    clientX = touch.clientX;
+    clientY = touch.clientY;
+  } else {
+    // 处理鼠标事件
+    clientX = event.clientX;
+    clientY = event.clientY;
+  }
+  
+  // 计算偏移量
+  dx = clientX - dragStartX.value;
+  dy = clientY - dragStartY.value;
+  
+  // 更新起始位置
+  dragStartX.value = clientX;
+  dragStartY.value = clientY;
+  
+  // 考虑图片位置和缩放比例
+  const region = detectionRegions[activeRegion.value];
   
   // 更新区域位置
-  const region = detectionRegions[activeRegion.value];
   region.x += dx;
   region.y += dy;
   
   // 确保区域在图片范围内
   region.x = Math.max(0, Math.min(imageWidth.value - region.width, region.x));
   region.y = Math.max(0, Math.min(imageHeight.value - region.height, region.y));
-  
-  // 更新起始位置
-  dragStartX.value = event.clientX;
-  dragStartY.value = event.clientY;
 };
 
 // 停止拖拽
@@ -474,6 +558,8 @@ const stopDrag = () => {
   isDragging.value = false;
   document.removeEventListener('mousemove', dragMove);
   document.removeEventListener('mouseup', stopDrag);
+  document.removeEventListener('touchmove', dragMove);
+  document.removeEventListener('touchend', stopDrag);
 };
 
 // 计算区域内的平均颜色
@@ -595,10 +681,15 @@ const handleResize = () => {
 
 // 处理document点击事件
 const handleDocumentClick = (event) => {
+  // 阻止range输入元素上的点击事件取消选择
+  const isRangeInput = event.target.tagName === 'INPUT' && event.target.type === 'range';
+  if (isRangeInput) return;
+  
   // 如果点击的不是检测区域，则取消区域选择
   const isDetectionRegion = event.target.closest('.detection-region');
-  // 只有在点击区域外且有活动区域时取消选择
-  if (!isDetectionRegion && activeRegion.value !== null) {
+  
+  // 只有在点击区域外且有活动区域时取消选择，且不在拖动过程中
+  if (!isDetectionRegion && !isRangeInput && activeRegion.value !== null && !isDragging.value) {
     activeRegion.value = null;
   }
 };
@@ -610,12 +701,27 @@ onMounted(() => {
   
   // 添加全局点击事件监听，用于取消区域选择
   document.addEventListener('click', handleDocumentClick);
+  
+  // 处理触摸事件时避免滚动
+  document.addEventListener('touchmove', (e) => {
+    if (isDragging.value || isImageDragging.value) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+  
+  // 添加滚动事件监听
+  window.addEventListener('scroll', checkScrollPosition);
+  
+  // 初始检查滚动位置
+  checkScrollPosition();
 });
 
 // 在组件卸载时移除事件监听
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize);
   document.removeEventListener('click', handleDocumentClick);
+  document.removeEventListener('touchmove', null, { passive: false });
+  window.removeEventListener('scroll', checkScrollPosition);
 });
 
 // 处理点击容器
@@ -696,12 +802,20 @@ const handleWheel = (event) => {
       
       // 调整区域位置和大小
       adjustRegionsPosition();
+      
+      // 缩放后执行一次颜色检测，但不频繁执行
+      if (Math.abs(oldWidth - newWidth) > oldWidth * 0.05) {
+        detectColors();
+      }
     }
   }
 };
 
 // 处理触摸开始
 const handleTouchStart = (event) => {
+  // 如果正在拖动检测区域，不进行图片移动
+  if (isDragging.value) return;
+  
   if (event.touches.length === 1) {
     // 单指触摸 - 移动
     touchStartX.value = event.touches[0].clientX - imagePositionX.value;
@@ -719,6 +833,9 @@ const handleTouchStart = (event) => {
 
 // 处理触摸移动
 const handleTouchMove = (event) => {
+  // 如果正在拖动检测区域，不进行图片移动
+  if (isDragging.value) return;
+  
   event.preventDefault();
   
   if (event.touches.length === 1) {
@@ -751,6 +868,12 @@ const handleTouchMove = (event) => {
       imageWidth.value = newWidth;
       imageHeight.value = newHeight;
       lastTouchDistance.value = currentDistance;
+      
+      // 调整区域位置和大小
+      adjustRegionsPosition();
+      
+      // 缩放后自动检测颜色
+      detectColors();
     }
   }
 };
@@ -759,6 +882,100 @@ const handleTouchMove = (event) => {
 const handleTouchEnd = () => {
   lastTouchDistance.value = 0;
 };
+
+// 在range滑块上的交互不应该取消区域选中
+const handleRangeInteraction = (event) => {
+  event.stopPropagation();
+  
+  // 延迟计算颜色，而不是实时计算，提高滑动流畅度
+  if (updateTimer) clearTimeout(updateTimer);
+  updateTimer = setTimeout(() => {
+    if (imageUrl.value) {
+      detectColors();
+    }
+  }, 300);
+};
+
+// 滚动到顶部
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+};
+
+// 检测滚动位置
+const checkScrollPosition = () => {
+  showBackToTop.value = window.scrollY > 300;
+};
+
+// 开始分析按钮处理 - 修复功能
+const startAnalysis = () => {
+  // // 检查是否所有颜色都已检测
+  // if (!allColorsDetected.value) {
+  //   alert('请先完成所有区域的颜色检测');
+  //   return;
+  // }
+  
+  // // 构建颜色数据
+  // const colors = {
+  //   forehead: detectionRegions.forehead.color,
+  //   cheeks: ((color1, color2) => {
+  //     // 计算左右脸颊的平均色
+  //     const hex1 = color1.replace('#', '');
+  //     const hex2 = color2.replace('#', '');
+      
+  //     const r1 = parseInt(hex1.substring(0, 2), 16);
+  //     const g1 = parseInt(hex1.substring(2, 4), 16);
+  //     const b1 = parseInt(hex1.substring(4, 6), 16);
+      
+  //     const r2 = parseInt(hex2.substring(0, 2), 16);
+  //     const g2 = parseInt(hex2.substring(2, 4), 16);
+  //     const b2 = parseInt(hex2.substring(4, 6), 16);
+      
+  //     const r = Math.round((r1 + r2) / 2);
+  //     const g = Math.round((g1 + g2) / 2);
+  //     const b = Math.round((b1 + b2) / 2);
+      
+  //     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+  //   })(detectionRegions.leftCheek.color, detectionRegions.rightCheek.color),
+  //   neck: detectionRegions.neck.color,
+  //   lips: detectionRegions.lips.color,
+  //   hair: detectionRegions.hair.color,
+  //   eyes: '#2F4F4F' // 由于无法准确检测，使用默认深灰色
+  // };
+  
+  // // 保存到会话存储
+  // console.log('保存颜色数据:', colors);
+  // sessionStorage.setItem('colorSelection', JSON.stringify(colors));
+  
+  // // 导航到报告页面
+  // router.push('/report');
+  // 发射事件给父组件
+  emit('submitColors');
+};
+
+// 监视区域变化自动检测颜色 - 优化节流
+let updateTimer = null;
+watch(
+  () => [...Object.values(detectionRegions).map(r => [r.width, r.height, r.x, r.y])],
+  () => {
+    // 仅在未拖动状态下启动定时器
+    if (!isDragging.value && !isImageDragging.value) {
+      // 清除之前的定时器
+      if (updateTimer) clearTimeout(updateTimer);
+      
+      // 设置延迟更新，减少频繁计算
+      updateTimer = setTimeout(() => {
+        // 只在图片加载后执行检测
+        if (imageUrl.value) {
+          detectColors();
+        }
+      }, 500); // 增加到500ms延迟，提高响应速度
+    }
+  },
+  { deep: true }
+);
 </script>
 
 <style scoped>
@@ -766,7 +983,6 @@ const handleTouchEnd = () => {
   height: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch; /* 增强iOS的滚动体验 */
-  padding-bottom: 80px; /* 增加底部padding，确保最后的按钮在滚动时也能看到 */
 }
 
 .photo-container {
@@ -853,6 +1069,25 @@ const handleTouchEnd = () => {
   z-index: 5;
 }
 
+/* 回到顶部按钮样式 */
+.back-to-top-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0.8;
+  transition: opacity 0.3s;
+}
+
+.back-to-top-btn:hover {
+  opacity: 1;
+}
+
 @media (max-width: 768px) {
   .photo-container {
     aspect-ratio: 1;
@@ -878,6 +1113,14 @@ const handleTouchEnd = () => {
     width: 100%;
     margin-top: 1rem;
     padding: 0.75rem 0;
+  }
+  
+  /* 移动设备上的回到顶部按钮 */
+  .back-to-top-btn {
+    width: 40px;
+    height: 40px;
+    bottom: 20px;
+    right: 20px;
   }
 }
 </style> 

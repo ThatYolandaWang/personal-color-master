@@ -223,8 +223,6 @@ onMounted(() => {
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   display: flex;
   flex-direction: column;

@@ -1,15 +1,15 @@
 <template>
   <div class="color-picker-panel">
     <!-- 仅使用照片检测模式 -->
-    <div v-if="!showReport" class="photo-detection-container">
-      <PhotoDetection @colorsDetected="applyDetectedColors" ref="photoDetection" />
+    <div v-if="!showReport">
+      <PhotoDetection @colorsDetected="applyDetectedColors" ref="photoDetection" @submitColors="submitColors" />
     </div>
 
-    <div v-if="!showReport" class="actions">
+    <!-- <div v-if="!showReport" class="actions">
       <button class="btn primary" @click="submitColors" :disabled="loading">
         {{ loading ? '分析中...' : '开始分析' }}
       </button>
-    </div>
+    </div> -->
 
     <!-- 报告视图组件 -->
     <ReportView 
@@ -173,10 +173,6 @@ const cancelReport = () => {
   min-height: 600px;
   display: flex;
   flex-direction: column;
-}
-
-.photo-detection-container {
-  margin-bottom: 2rem;
 }
 
 .actions {

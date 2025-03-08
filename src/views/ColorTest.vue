@@ -8,15 +8,13 @@
     </div>
 
     <div class="row flex-grow-1">
-      <div class="col-12 h-100">
-        <div class="h-100">
-          <div class="p-3 p-md-4">
+      <div class="col-12">
+
             <ColorPickerPanel
               initialMode="photo"
-              class="h-100"
+              
             />
-          </div>
-        </div>
+
       </div>
     </div>
   </div>
