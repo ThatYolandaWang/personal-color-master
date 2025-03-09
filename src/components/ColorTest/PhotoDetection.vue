@@ -2,7 +2,7 @@
   <div class="container photo-detection-container">
     <div class="row justify-content-center">
       <!-- 上传区域 -->
-      <div class="col-12 mb-4 text-center">
+      <div class="col-12 text-center">
         <div class="border-0 p-3 mx-auto" style="max-width: 400px;">
           <div >
             <label class="btn btn-primary btn-lg d-block mx-auto" style="max-width: 200px;">
@@ -27,6 +27,24 @@
           <div class="col-md-8 mb-3">
             <!-- 照片展示区域 -->
             <div class="card shadow-sm border-0">
+              <div class="card-header">
+                <h5 class="card-title mb-0 text-center">检测区域</h5>
+              </div>
+              <div class="card-footer border-0 text-center p-3">
+                <!-- 开始分析按钮 -->
+                <button 
+                class="btn btn-primary btn-lg px-4 rounded-3 shadow-sm detect-button" 
+                  @click="startAnalysis"
+                  :disabled="!allColorsDetected"
+                >
+                  <i class="bi bi-palette-fill me-2"></i>开始分析
+                </button>
+
+                <small v-if="!allColorsDetected" class="text-secondary d-block mt-2 text-center">
+                  请先完成所有区域的颜色检测
+                </small>
+              </div>
+
               <div class="card-body p-2">
                 <div class="photo-container border rounded-3 overflow-hidden position-relative bg-light" ref="editorContainer">
                   <div 
@@ -76,13 +94,6 @@
                         <span class="region-label">{{ region.label }}</span>
                       </div>
                     </div>
-                    
-                    <!-- 缩放指示 -->
-                    <div class="zoom-tip">
-                      <i class="bi bi-zoom-in me-1"></i>
-                      <span class="d-none d-md-inline">鼠标悬停于照片上，可使用滚轮放大缩小</span>
-                      <span class="d-md-none">双指捏合可放大缩小照片</span>
-                    </div>
                   </div>
                 </div>
                 
@@ -90,8 +101,8 @@
                 <div class="alert alert-info mt-3 mb-0 py-2 small">
                   <div class="d-flex align-items-center">
                     <i class="bi bi-info-circle-fill me-2"></i>
-                    <div class="d-none d-md-block">拖动照片可调整位置，点击圆形区域可进行细节调整</div>
-                    <div class="d-md-none">拖动照片调整位置，点击圆形区域调整大小</div>
+                    <div class="d-none d-md-block">鼠标悬停于照片上，可使用滚轮放大缩，拖动照片可调整位置，点击圆形区域可进行细节调整</div>
+                    <div class="d-md-none">双指捏合可放大缩小照片拖动照片调整位置，点击圆形区域调整大小</div>
                   </div>
                 </div>
               </div>
@@ -173,17 +184,7 @@
               </div>
             </div>
 
-            <!-- 开始分析按钮 -->
-            <button 
-              class="btn btn-success btn-lg px-4 rounded-3 shadow-sm w-100 mt-3" 
-              @click="startAnalysis"
-              :disabled="!allColorsDetected"
-            >
-              <i class="bi bi-palette-fill me-2"></i>开始分析
-            </button>
-            <small v-if="!allColorsDetected" class="text-secondary d-block mt-2 text-center">
-              请先完成所有区域的颜色检测
-            </small>
+
           </div>
         </div>
       </div>
@@ -560,6 +561,14 @@ const stopDrag = () => {
   document.removeEventListener('mouseup', stopDrag);
   document.removeEventListener('touchmove', dragMove);
   document.removeEventListener('touchend', stopDrag);
+
+    // 在停止拖拽时更新当前活动区域的颜色
+  if (activeRegion.value) {
+    const region = detectionRegions[activeRegion.value];
+    const averageColor = getAverageColor(region.x, region.y, region.width, region.height);
+    region.color = averageColor; // 更新区域颜色
+    detectColors(); // 重新检测颜色以更新结果
+  }
 };
 
 // 计算区域内的平均颜色
@@ -906,7 +915,7 @@ const scrollToTop = () => {
 
 // 检测滚动位置
 const checkScrollPosition = () => {
-  showBackToTop.value = window.scrollY > 300;
+  showBackToTop.value = window.scrollY > 1;
 };
 
 // 开始分析按钮处理 - 修复功能
@@ -1101,11 +1110,6 @@ watch(
   
   .detection-region {
     border-width: 1.5px;
-  }
-  
-  /* 在移动设备上增强可滚动性 */
-  .photo-detection-container {
-    padding-bottom: 100px;
   }
   
   /* 确保检测按钮在移动设备上足够大和明显 */
