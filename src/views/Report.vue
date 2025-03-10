@@ -17,7 +17,6 @@
     <div v-else class="card shadow-sm">
       <div class="card-body text-center p-5">
         <div class="display-1 mb-4">📊</div>
-        <h2 class="h3 mb-3">暂无分析报告</h2>
         <p class="mb-4">请先进行个人色彩测试以生成您的专属分析报告</p>
         <button class="btn btn-primary btn-lg px-4" @click="navigateToColorTest">
           开始测试
@@ -95,5 +94,5 @@ const navigateToColorTest = () => {
 </script>
 
 <style scoped>
-/* 移除所有自定义样式，完全使用Bootstrap类 */
+/* 移除单独的字体样式，使用全局样式 */
 </style>

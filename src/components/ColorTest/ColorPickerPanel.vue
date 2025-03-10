@@ -194,38 +194,5 @@ const cancelReport = () => {
   margin-top: 2rem;
 }
 
-.btn {
-  padding: 0.8rem 2rem;
-  border-radius: var(--border-radius);
-  font-weight: 500;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  border: none;
-  font-size: 1.1rem;
-}
-
-.btn.primary {
-  background-color: var(--color-primary);
-  color: var(--color-surface);
-}
-
-.btn.primary:hover {
-  background-color: var(--color-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .actions {
-    margin-top: 1rem;
-  }
-}
+/* 移除自定义按钮样式，使用全局Bootstrap按钮样式 */
 </style>

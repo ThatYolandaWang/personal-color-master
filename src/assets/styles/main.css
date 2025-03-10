@@ -8,16 +8,54 @@
   /* 基础变量 */
   --border-radius: 0.5rem;
   --transition-speed: 0.3s;
+  
+  /* 字体系统 */
+  --font-family-base: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+  --font-family-heading: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+  --font-family-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  
+  /* 字体大小 */
+  --font-size-xs: 0.75rem;   /* 12px */
+  --font-size-sm: 0.875rem;  /* 14px */
+  --font-size-base: 1rem;    /* 16px */
+  --font-size-lg: 1.125rem;  /* 18px */
+  --font-size-xl: 1.25rem;   /* 20px */
+  --font-size-2xl: 1.5rem;   /* 24px */
+  --font-size-3xl: 1.875rem; /* 30px */
+  --font-size-4xl: 2.25rem;  /* 36px */
+  
+  /* 行高 */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  /* 字重 */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
 }
 
 body {
-  font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-background);
   color: var(--color-text);
   transition: background-color var(--transition-speed) ease, 
               color var(--transition-speed) ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-heading);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+code, pre, kbd, samp {
+  font-family: var(--font-family-mono);
+  font-size: 0.9em;
 }
 
 /* 滚动条样式 */
@@ -66,6 +104,7 @@ a:hover {
 
 /* 表单元素样式 */
 input, select, textarea {
+  font-family: var(--font-family-base);
   border-radius: var(--border-radius);
   transition: all var(--transition-speed) ease;
 }
@@ -73,4 +112,111 @@ input, select, textarea {
 input::placeholder, textarea::placeholder {
   color: var(--color-textSecondary);
   opacity: 0.7;
+}
+
+/* 统一Bootstrap文本类的字体样式 */
+.display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+  font-family: var(--font-family-heading);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+.display-1 {
+  font-size: var(--font-size-4xl);
+}
+
+.display-2 {
+  font-size: 3.5rem;
+}
+
+.display-3 {
+  font-size: 3rem;
+}
+
+.display-4 {
+  font-size: 2.5rem;
+}
+
+.display-5 {
+  font-size: var(--font-size-3xl);
+}
+
+.display-6 {
+  font-size: var(--font-size-2xl);
+}
+
+.lead {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-normal);
+}
+
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: var(--font-family-heading);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+/* 表单控件统一字体 */
+.form-control, .form-select, .form-label, .btn, .input-group-text {
+  font-family: var(--font-family-base);
+}
+
+.form-label {
+  font-weight: var(--font-weight-medium);
+}
+
+/* 按钮文本统一 */
+.btn {
+  font-weight: var(--font-weight-medium);
+}
+
+/* 卡片元素统一字体 */
+.card, .card-title, .card-text {
+  font-family: var(--font-family-base);
+}
+
+/* 小文本样式统一 */
+.small, small {
+  font-size: var(--font-size-sm);
+}
+
+/* 辅助文本 */
+.text-muted {
+  color: var(--color-textSecondary) !important;
+}
+
+/* 更完整的Bootstrap组件字体控制 */
+.btn, 
+.btn-primary, 
+.btn-secondary, 
+.btn-success, 
+.btn-danger, 
+.btn-warning, 
+.btn-info, 
+.btn-light, 
+.btn-dark,
+.btn-outline-primary, 
+.btn-outline-secondary, 
+.btn-outline-success, 
+.btn-outline-danger, 
+.btn-outline-warning, 
+.btn-outline-info, 
+.btn-outline-light, 
+.btn-outline-dark,
+.btn-lg,
+.btn-sm {
+  font-family: var(--font-family-base) !important;
+}
+
+/* 确保按钮中的图标使用正确的字体大小 */
+.btn i,
+.btn .bi {
+  font-size: inherit;
+}
+
+/* 确保所有Bootstrap组件都使用全局字体 */
+.form-control, .form-select, .form-label, .input-group-text,
+.alert, .badge, .breadcrumb, .card, .dropdown-menu, .list-group,
+.modal, .nav, .navbar, .pagination, .progress, .toast {
+  font-family: var(--font-family-base);
 }

@@ -79,8 +79,6 @@
 
 .label-text {
   color: var(--color-text);
-  font-size: 14px;
-  font-weight: 500;
   background-color: var(--color-surface);
   padding: 2px 6px;
   border-radius: 4px;

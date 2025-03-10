@@ -4,21 +4,21 @@
       <!-- 上传区域 -->
       <div class="col-12 text-center">
         <div class="border-0 p-3 mx-auto" style="max-width: 400px;">
-          <div >
-            <label class="btn btn-primary btn-lg d-block mx-auto" style="max-width: 200px;">
-        <input 
-          type="file" 
-          accept="image/*" 
-          @change="handleFileSelect" 
+          <div>
+            <label class="btn btn-primary btn-lg fw-normal d-block mx-auto" style="max-width: 200px; cursor: pointer;">
+              <input 
+                type="file" 
+                accept="image/*" 
+                @change="handleFileSelect" 
                 class="d-none"
-        >
+              >
               <i class="bi bi-upload me-2"></i>
               {{ imageUrl ? '重新上传照片' : '上传照片' }}
-      </label>
+            </label>
             <small v-if="!imageUrl" class="text-secondary d-block mt-2">请上传一张清晰的正面照片</small>
           </div>
         </div>
-    </div>
+      </div>
 
       <!-- 照片编辑和结果区域 -->
       <div v-if="imageUrl" class="col-12">
@@ -85,7 +85,7 @@
               left: `${region.x}px`,
               top: `${region.y}px`,
               backgroundColor: region.color,
-              borderColor: activeRegion === key ? '#00aaff' : 'rgba(255,255,255,0.5)'
+              borderColor: activeRegion === key ? 'var(--bs-primary)' : 'rgba(255,255,255,0.8)'
             }"
                         @mousedown.stop="startDrag($event, key)"
                         @touchstart.stop="startDrag($event, key)"
@@ -192,7 +192,7 @@
 
     <!-- 回到顶部按钮 -->
     <button 
-      class="btn btn-primary rounded-circle back-to-top-btn shadow" 
+      class="btn rounded-circle back-to-top-btn" 
       @click="scrollToTop"
       v-show="showBackToTop"
     >
@@ -1028,28 +1028,30 @@ watch(
   border: 2px solid;
   border-radius: 50%;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
   transition: all 0.2s ease;
-}
-
-.detection-region:hover {
-  border-color: #00aaff !important;
+  overflow: visible;
 }
 
 .detection-region.active {
-  border-color: #00aaff !important;
-  box-shadow: 0 0 0 2px rgba(0, 170, 255, 0.3);
+  opacity: 0.9;
+  border-width: 3px;
+  z-index: 10;
 }
 
 .region-label {
   position: absolute;
+  bottom: -24px;
   left: 50%;
-  bottom: -25px;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
+  background-color: var(--bs-light);
+  color: var(--bs-dark);
+  font-size: 0.75rem;
   padding: 2px 8px;
   border-radius: 10px;
-  font-size: 12px;
   white-space: nowrap;
 }
 
@@ -1062,7 +1064,6 @@ watch(
   color: white;
   padding: 4px 12px;
   border-radius: 15px;
-  font-size: 12px;
   pointer-events: none;
 }
 
@@ -1078,24 +1079,7 @@ watch(
   z-index: 5;
 }
 
-/* 回到顶部按钮样式 */
-.back-to-top-btn {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  opacity: 0.8;
-  transition: opacity 0.3s;
-}
-
-.back-to-top-btn:hover {
-  opacity: 1;
-}
+/* 不再需要单独的回到顶部按钮样式，使用全局样式 */
 
 @media (max-width: 768px) {
   .photo-container {
@@ -1103,7 +1087,7 @@ watch(
   }
   
   .region-label {
-    font-size: 10px;
+    font-size: var(--font-size-xs);
     bottom: -20px;
     padding: 1px 6px;
   }
@@ -1118,13 +1102,10 @@ watch(
     margin-top: 1rem;
     padding: 0.75rem 0;
   }
-  
-  /* 移动设备上的回到顶部按钮 */
-  .back-to-top-btn {
-    width: 40px;
-    height: 40px;
-    bottom: 20px;
-    right: 20px;
-  }
+}
+
+/* 也可以直接添加全局样式设置 */
+.btn {
+  font-family: var(--font-family-base) !important;
 }
 </style> 

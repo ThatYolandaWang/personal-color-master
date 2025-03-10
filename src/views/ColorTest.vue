@@ -1,20 +1,16 @@
 <template>
   <div class="container-fluid color-test-page">
-    <div class="row py-4">
+    <div class="row pt-2">
       <div class="col-12 text-center">
-        <h1 class="display-5 mb-3">个人色彩测试</h1>
         <p class="lead mb-4">请选择最接近您面部特征的颜色，我们将为您进行专业的色彩分析。</p>
       </div>
     </div>
 
     <div class="row flex-grow-1">
       <div class="col-12">
-
-            <ColorPickerPanel
-              initialMode="photo"
-              
-            />
-
+        <ColorPickerPanel
+          initialMode="photo"
+        />
       </div>
     </div>
   </div>
@@ -38,14 +34,6 @@ const route = useRoute()
 @media (max-width: 768px) {
   .color-test-page {
     padding-bottom: 2rem;
-  }
-  
-  .display-5 {
-    font-size: 1.75rem;
-  }
-  
-  .lead {
-    font-size: 1rem;
   }
 }
 </style>

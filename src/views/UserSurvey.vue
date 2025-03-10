@@ -3,7 +3,6 @@
     <div class="row justify-content-center">
       <div class="col-12 col-md-8 col-lg-6">
           <div class="p-4">
-            <h1 class="display-5 text-center mb-3">个人信息收集</h1>
             <p class="lead text-center mb-4">请填写以下信息，帮助我们为您提供更精准的色彩分析。</p>
             
             <form @submit.prevent="submitForm">
@@ -101,5 +100,5 @@ const submitForm = () => {
 </script>
 
 <style scoped>
-/* 移除所有自定义样式，完全使用Bootstrap类 */
+/* 移除单独的字体样式，使用全局样式 */
 </style> 

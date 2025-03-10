@@ -200,7 +200,6 @@ h2 {
 .btn {
   padding: 0.8rem 2rem;
   border-radius: var(--border-radius);
-  font-weight: 500;
   transition: all 0.3s ease;
   cursor: pointer;
 }

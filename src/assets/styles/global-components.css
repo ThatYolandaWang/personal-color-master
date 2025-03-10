@@ -1,0 +1,168 @@
+/* 全局组件样式文件 - 专注于确保字体一致性 */
+
+/* 确保所有常见元素使用统一字体 */
+body,
+h1, h2, h3, h4, h5, h6,
+p, span, div, a, button, input, select, textarea,
+.btn, .form-control, .badge, .alert, .card,
+.modal-title, .navbar, .nav-link, .dropdown-item {
+  font-family: var(--font-family-base) !important;
+}
+
+/* Bootstrap按钮字体统一 */
+.btn {
+  font-family: var(--font-family-base) !important;
+}
+
+/* 确保按钮内的图标与文本字体大小一致 */
+.btn i,
+.btn .bi {
+  font-size: inherit;
+  vertical-align: middle;
+}
+
+/* 表单元素字体统一 */
+.form-control, 
+.form-select, 
+.form-check-label, 
+.form-label {
+  font-family: var(--font-family-base) !important;
+}
+
+/* 确保无论何种组件嵌套，字体都保持一致 */
+[class*="btn-"],
+[class*="form-"],
+[class*="alert-"],
+[class*="badge-"],
+[class*="card-"],
+[class*="modal-"],
+[class*="nav-"],
+[class*="navbar-"],
+[class*="dropdown-"] {
+  font-family: var(--font-family-base) !important;
+}
+
+/* 优先级提升，确保覆盖Bootstrap默认样式 */
+html body .btn,
+html body [class*="btn-"] {
+  font-family: var(--font-family-base) !important;
+}
+
+/* 特别强化按钮组件的字体一致性 */
+.btn, 
+.btn-primary, 
+.btn-secondary, 
+.btn-success, 
+.btn-danger, 
+.btn-warning, 
+.btn-info, 
+.btn-light, 
+.btn-dark,
+.btn-outline-primary, 
+.btn-outline-secondary, 
+.btn-outline-success, 
+.btn-outline-danger, 
+.btn-outline-warning, 
+.btn-outline-info, 
+.btn-outline-light, 
+.btn-outline-dark,
+.btn-lg,
+.btn-sm,
+button.btn,
+a.btn,
+label.btn,
+.btn *,
+button.btn *,
+a.btn *,
+label.btn * {
+  font-family: var(--font-family-base) !important;
+  letter-spacing: normal;
+}
+
+/* 确保按钮内所有子元素都继承相同字体 */
+.btn *,
+button.btn *,
+a.btn *,
+label.btn * {
+  font-family: inherit !important;
+}
+
+/* 统一圆形按钮样式 - 仅应用于返回顶部按钮等非标题栏按钮 */
+.back-to-top,
+.back-to-top-btn {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  z-index: 1000 !important;
+  opacity: 0.9 !important;
+  transition: all 0.3s ease !important;
+  background-color: var(--color-primary, #8e9fbc) !important;
+  color: white !important;
+}
+
+/* 返回顶部按钮内部图标样式 */
+.back-to-top i,
+.back-to-top-btn i {
+  font-size: 1.5rem !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 返回顶部按钮悬停效果 */
+.back-to-top:hover,
+.back-to-top-btn:hover {
+  opacity: 1 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* 检测区域圆形样式 */
+.detection-region {
+  border: 2px solid !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  opacity: 0.7 !important;
+  transition: all 0.2s ease !important;
+  overflow: visible !important;
+}
+
+.detection-region:hover {
+  opacity: 0.9 !important;
+  border-color: var(--bs-primary) !important;
+}
+
+.detection-region.active {
+  opacity: 0.9 !important;
+  border-width: 3px !important;
+  border-color: var(--bs-primary) !important;
+  box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb), 0.3) !important;
+  z-index: 10 !important;
+}
+
+/* 区域标签样式 */
+.region-label {
+  position: absolute !important;
+  bottom: -24px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background-color: var(--bs-light) !important;
+  color: var(--bs-dark) !important;
+  font-size: 0.75rem !important;
+  padding: 2px 8px !important;
+  border-radius: 10px !important;
+  white-space: nowrap !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+} 

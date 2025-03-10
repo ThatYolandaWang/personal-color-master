@@ -1,8 +1,7 @@
 <template>
   <div class="theme-controls">
     <!-- 仅保留亮暗模式切换 -->
-    <button class="btn theme-toggle shadow-sm" @click="toggleTheme" :title="isDarkMode ? '切换到日间模式' : '切换到夜间模式'"
-      :class="isDarkMode ? 'btn-outline-light' : 'btn-outline-dark'">
+    <button class="btn btn-primary rounded-circle theme-toggle" @click="toggleTheme" :title="isDarkMode ? '切换到日间模式' : '切换到夜间模式'">
       <i class="bi" :class="{ 'bi-moon-fill': isDarkMode, 'bi-sun-fill': !isDarkMode }"></i>
     </button>
   </div>
@@ -20,26 +19,10 @@ import { isDarkMode, toggleTheme } from '../utils/theme'
   z-index: 1000;
 }
 
+/* 使用全局圆形按钮样式，仅保留位置相关样式 */
 .theme-toggle {
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all var(--transition-speed, 0.3s) ease;
-  background-color: transparent;
-  border-color: var(--bs-primary);
-  color: var(--bs-primary);
-}
-
-.theme-toggle:hover {
-  transform: scale(1.1);
-  background-color: var(--bs-primary);
-  color: var(--bs-light);
-}
-
-.theme-toggle i {
-  font-size: 1.2rem;
+  position: static !important;
+  bottom: auto !important;
+  right: auto !important;
 }
 </style> 

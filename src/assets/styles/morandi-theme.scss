@@ -160,11 +160,12 @@ $morandi-text-dark: #3c3a38;
 }
 
 // 全局按钮样式调整
-.btn-primary {
+.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-warning, .btn-info, .btn-light, .btn-dark {
   background-color: var(--bs-primary);
   border-color: var(--bs-primary);
   color: var(--bs-tertiary-bg);
-  font-weight: 500;
+  font-family: var(--font-family-base) !important;
+  font-weight: var(--font-weight-medium);
   letter-spacing: 0.03em;
   
   &:hover, &:focus, &:active {
@@ -178,16 +179,21 @@ $morandi-text-dark: #3c3a38;
   border-radius: 0.5rem;
   padding: 0.5rem 1.25rem;
   transition: all 0.3s ease;
+  font-family: var(--font-family-base) !important;
   
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
+  
+  i, .bi {
+    font-size: inherit;
+  }
 }
 
 .btn-lg {
   padding: 0.75rem 1.5rem;
-  font-size: 1.1rem;
+  font-size: var(--font-size-lg);
 }
 
 .btn-outline-primary {
@@ -197,16 +203,6 @@ $morandi-text-dark: #3c3a38;
   &:hover {
     background-color: var(--bs-primary);
     color: white;
-  }
-}
-
-.btn-secondary {
-  background-color: var(--bs-secondary);
-  border-color: var(--bs-secondary);
-  
-  &:hover {
-    background-color: color.adjust($morandi-secondary, $lightness: -7%);
-    border-color: color.adjust($morandi-secondary, $lightness: -10%);
   }
 }
 
@@ -260,5 +256,90 @@ $morandi-text-dark: #3c3a38;
   .input-group-text {
     background-color: color.adjust($morandi-bg-dark, $lightness: 10%);
     color: $morandi-text-light;
+  }
+}
+
+// 为Bootstrap组件添加字体样式统一控制
+
+// 对话框和弹出窗样式
+.modal-title {
+  font-family: var(--font-family-heading);
+  font-weight: var(--font-weight-bold);
+}
+
+.modal-body {
+  font-family: var(--font-family-base);
+}
+
+// 导航元素
+.nav-link, .navbar-brand {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-medium);
+}
+
+// 列表组
+.list-group-item {
+  font-family: var(--font-family-base);
+}
+
+// 徽章
+.badge {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-medium);
+}
+
+// 表格
+.table {
+  font-family: var(--font-family-base);
+}
+
+.table th {
+  font-weight: var(--font-weight-medium);
+}
+
+// 标签页
+.nav-tabs .nav-link {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-medium);
+}
+
+// 进度条文本
+.progress-bar {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-sm);
+}
+
+// 响应式字体调整
+@media (max-width: 768px) {
+  .display-1 {
+    font-size: 2.5rem;
+  }
+  
+  .display-2 {
+    font-size: 2.25rem;
+  }
+  
+  .display-3 {
+    font-size: 2rem;
+  }
+  
+  .display-4 {
+    font-size: 1.75rem;
+  }
+  
+  .display-5 {
+    font-size: 1.5rem;
+  }
+  
+  .display-6 {
+    font-size: 1.25rem;
+  }
+  
+  .h1, h1 {
+    font-size: 1.75rem;
+  }
+  
+  .h2, h2 {
+    font-size: 1.5rem;
   }
 } 

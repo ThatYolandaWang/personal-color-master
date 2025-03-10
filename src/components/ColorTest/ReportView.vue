@@ -24,19 +24,22 @@
     </div>
     
     <!-- 报告内容 -->
-    <div v-else-if="result" ref="resultContainer" class="pt-5 mt-4 ">
+    <div v-else-if="result" ref="resultContainer" class="pt-5 mt-4 report-content">
       <!-- 报告头部 -->
-      <header class="text-center mb-5 pt-4">
-        <div class="text-primary fs-5 mb-2">为您定制 / MAKE-UP FOR THE</div>
-        <h1 class="display-3 fw-bold">{{ processedResult.colorType }}</h1>
-        <div class="fs-4 text-uppercase letter-spacing-2">{{ getSeasonTraits(processedResult.colorType) }}</div>
+      <header class="text-center mb-4 pt-3">
+        <div class="d-flex justify-content-center align-items-center mb-2">
+          <img src="@/assets/logo.png" alt="个人色彩管家" class="report-logo me-2" />
+        </div>
+        <div class="text-primary fs-6 mb-2">为您定制 / MAKE-UP FOR THE</div>
+        <h1 class="h2 fw-bold mb-2">{{ processedResult.colorType }}</h1>
+        <div class="fs-5 letter-spacing-2">{{ getSeasonTraits(processedResult.colorType) }}</div>
       </header>
 
-      <div class="row g-4 mb-5">
+      <div class="row g-4 mb-4">
         <div class="col-md-8">
           <!-- 用户信息 -->
           <section class="mb-4" v-if="hasUserInfo">
-            <h2 class="border-bottom pb-2 mb-4">个人信息 / PERSONAL INFO</h2>
+            <h2 class="h4 border-bottom pb-2 mb-3">个人信息 / PERSONAL INFO</h2>
             <div class="row g-3">
               <div class="col-md-6" v-if="props.userInfo.nickname">
                 <span class="fw-medium me-2">昵称:</span>
@@ -57,9 +60,9 @@
             </div>
           </section>
 
-          <!-- a检测色彩数据 -->
+          <!-- 检测色彩数据 -->
           <section class="mb-4" v-if="hasColorSelection">
-            <h2 class="border-bottom pb-2 mb-4">检测色彩数据 / DETECTED COLORS</h2>
+            <h2 class="h4 border-bottom pb-2 mb-3">检测色彩数据 / DETECTED COLORS</h2>
             <div class="row g-3">
               <div class="col-4 col-md-2 text-center" v-for="(colorKey, label) in {
                 '前额 / Forehead': 'forehead',
@@ -79,7 +82,7 @@
 
           <!-- 色彩分析 -->
           <section class="mb-4">
-            <h2 class="border-bottom pb-2 mb-4">色彩特征分析 / COLOR ANALYSIS</h2>
+            <h2 class="h4 border-bottom pb-2 mb-3">色彩特征分析 / COLOR ANALYSIS</h2>
             <p class="mb-3">{{ processedResult.analysisReason }}</p>
             <p v-if="processedResult.userProfile && processedResult.userProfile.summary">
               {{ processedResult.userProfile.summary }}
@@ -88,7 +91,7 @@
 
           <!-- 色彩调色板 -->
           <section class="mb-4">
-            <h2 class="border-bottom pb-2 mb-4">推荐色彩调色板 / COLOUR PALETTE</h2>
+            <h2 class="h4 border-bottom pb-2 mb-3">推荐色彩调色板 / COLOUR PALETTE</h2>
             <div class="d-flex flex-wrap gap-1">
               <div v-for="(color, index) in processedResult.colorCards.primary" 
                    :key="`palette-${index}`"
@@ -103,10 +106,10 @@
         <div class="col-md-4">
           <!-- 色彩维度 -->
           <section class="mb-4">
-            <h2 class="border-bottom pb-2 mb-4">色彩维度 / COLOUR DIMENSIONS</h2>
+            <h2 class="h4 border-bottom pb-2 mb-3">色彩维度 / COLOUR DIMENSIONS</h2>
             
             <div class="mb-4">
-              <div class="mb-2">色相 / HUE</div>
+              <div class="mb-2 fw-medium">色相 / HUE</div>
               <div class="position-relative mb-3" style="height: 2px; background-color: #ddd;">
                 <div class="position-absolute" 
                      style="width: 12px; height: 12px; background-color: #000; border-radius: 50%; top: 50%; transform: translate(-50%, -50%)"
@@ -119,7 +122,7 @@
             </div>
             
             <div class="mb-4">
-              <div class="mb-2">明度 / VALUE</div>
+              <div class="mb-2 fw-medium">明度 / VALUE</div>
               <div class="position-relative mb-3" style="height: 2px; background-color: #ddd;">
                 <div class="position-absolute" 
                      style="width: 12px; height: 12px; background-color: #000; border-radius: 50%; top: 50%; transform: translate(-50%, -50%)"
@@ -132,7 +135,7 @@
             </div>
             
             <div class="mb-4">
-              <div class="mb-2">饱和度 / CHROMA</div>
+              <div class="mb-2 fw-medium">饱和度 / CHROMA</div>
               <div class="position-relative mb-3" style="height: 2px; background-color: #ddd;">
                 <div class="position-absolute" 
                      style="width: 12px; height: 12px; background-color: #000; border-radius: 50%; top: 50%; transform: translate(-50%, -50%)"
@@ -148,9 +151,9 @@
       </div>
       
       <!-- 妆容推荐 -->
-      <section class="mb-5">
-        <h2 class="border-bottom pb-2 mb-4">底妆推荐 / COMPLEXION MAKE-UP</h2>
-        <p class="fst-italic text-secondary mb-4">应与肤色相匹配，选择哑光或自然的质地 / must be skin-matched; choose matte or natural finishes</p>
+      <section class="mb-4">
+        <h2 class="h4 border-bottom pb-2 mb-3">底妆推荐 / COMPLEXION MAKE-UP</h2>
+        <p class="fst-italic text-secondary mb-3 small">应与肤色相匹配，选择哑光或自然的质地 / must be skin-matched; choose matte or natural finishes</p>
         
         <div class="mb-4">
           <h3 class="h5 mb-3">粉底与遮瑕 / Foundation & Concealers</h3>
@@ -170,14 +173,14 @@
       </section>
 
       <!-- 眼妆 -->
-      <section class="mb-5">
-        <h2 class="border-bottom pb-2 mb-4">眼妆推荐 / EYE MAKE-UP</h2>
-        <p class="fst-italic text-secondary mb-4">选择冰冷或鲜艳的色彩，避免过于温暖和柔和的色调 / choose icy or bright colours; avoid overly warm & soft colours</p>
+      <section class="mb-4">
+        <h2 class="h4 border-bottom pb-2 mb-3">眼妆推荐 / EYE MAKE-UP</h2>
+        <p class="fst-italic text-secondary mb-3 small">选择冰冷或鲜艳的色彩，避免过于温暖和柔和的色调 / choose icy or bright colours; avoid overly warm & soft colours</p>
         
         <div class="row g-4">
           <div class="col-md-4">
-            <h3 class="h5 mb-3">眼影 / Eyeshadow</h3>
-            <div class="d-flex flex-wrap gap-4">
+            <h3 class="h5 mb-2">眼影 / Eyeshadow</h3>
+            <div class="d-flex flex-wrap gap-3">
               <div v-for="(color, index) in processedResult.makeup.eyeshadow || []" 
                    :key="`eyeshadow-${index}`"
                    class="text-center">
@@ -189,8 +192,8 @@
           </div>
           
           <div class="col-md-4">
-            <h3 class="h5 mb-3">眼线 / Eyeliner</h3>
-            <div class="d-flex flex-wrap gap-4">
+            <h3 class="h5 mb-2">眼线 / Eyeliner</h3>
+            <div class="d-flex flex-wrap gap-3">
               <div v-for="(color, index) in processedResult.makeup.eyeliner || processedResult.makeup.liner || []" 
                    :key="`eyeliner-${index}`"
                    class="text-center">
@@ -202,8 +205,8 @@
           </div>
           
           <div class="col-md-4">
-            <h3 class="h5 mb-3">睫毛膏 / Mascara</h3>
-            <div class="d-flex flex-wrap gap-4">
+            <h3 class="h5 mb-2">睫毛膏 / Mascara</h3>
+            <div class="d-flex flex-wrap gap-3">
               <div v-for="(color, index) in processedResult.makeup.mascara || []" 
                    :key="`mascara-${index}`"
                    class="text-center">
@@ -217,14 +220,14 @@
       </section>
 
       <!-- 唇妆和腮红 -->
-      <section class="mb-5">
-        <h2 class="border-bottom pb-2 mb-4">唇部与腮红推荐 / LIP & CHEEK MAKE-UP</h2>
-        <p class="fst-italic text-secondary mb-4">光泽感、丝缎感或微亮质地，避免裸色和橙色调 / gloss, satin, or lustre; avoid nude & orange-based colours</p>
+      <section class="mb-4">
+        <h2 class="h4 border-bottom pb-2 mb-3">唇部与腮红推荐 / LIP & CHEEK MAKE-UP</h2>
+        <p class="fst-italic text-secondary mb-3 small">光泽感、丝缎感或微亮质地，避免裸色和橙色调 / gloss, satin, or lustre; avoid nude & orange-based colours</p>
         
         <div class="row g-4">
           <div class="col-md-6">
-            <h3 class="h5 mb-3">腮红 / Blush</h3>
-            <div class="d-flex flex-wrap gap-4">
+            <h3 class="h5 mb-2">腮红 / Blush</h3>
+            <div class="d-flex flex-wrap gap-3">
               <div v-for="(color, index) in processedResult.makeup.blush || []" 
                    :key="`blush-${index}`"
                    class="text-center">
@@ -236,8 +239,8 @@
           </div>
           
           <div class="col-md-6">
-            <h3 class="h5 mb-3">唇膏 / Lipstick</h3>
-            <div class="d-flex flex-wrap gap-4">
+            <h3 class="h5 mb-2">唇膏 / Lipstick</h3>
+            <div class="d-flex flex-wrap gap-3">
               <div v-for="(color, index) in processedResult.makeup.lipstick || []" 
                    :key="`lipstick-${index}`"
                    class="text-center">
@@ -251,14 +254,14 @@
       </section>
 
       <!-- 服装推荐 -->
-      <section class="mb-5" v-if="processedResult.clothing">
-        <h2 class="border-bottom pb-2 mb-4">服装推荐 / CLOTHING RECOMMENDATIONS</h2>
-        <p class="fst-italic text-secondary mb-4">{{ getClothingGuidance(processedResult.colorType) }}</p>
+      <section class="mb-4" v-if="processedResult.clothing">
+        <h2 class="h4 border-bottom pb-2 mb-3">服装推荐 / CLOTHING RECOMMENDATIONS</h2>
+        <p class="fst-italic text-secondary mb-3 small">{{ getClothingGuidance(processedResult.colorType) }}</p>
         
         <div class="row g-4">
           <div class="col-md-6">
-            <h3 class="h5 mb-3">推荐色彩 / Recommended Colors</h3>
-            <div class="d-flex flex-wrap gap-4">
+            <h3 class="h5 mb-2">推荐色彩 / Recommended Colors</h3>
+            <div class="d-flex flex-wrap gap-3">
               <div v-for="(color, index) in processedResult.clothing.recommended || []" 
                    :key="`clothing-${index}`"
                    class="text-center">
@@ -270,7 +273,7 @@
           </div>
           
           <div class="col-md-6">
-            <h3 class="h5 mb-3">建议风格 / Recommended Styles</h3>
+            <h3 class="h5 mb-2">建议风格 / Recommended Styles</h3>
             <ul class="ps-4">
               <li v-for="(style, index) in processedResult.clothing.styles || []" 
                   :key="`style-${index}`"
@@ -283,14 +286,14 @@
       </section>
 
       <!-- 发色推荐 -->
-      <section class="mb-5" v-if="processedResult.hairColor">
-        <h2 class="border-bottom pb-2 mb-4">发色推荐 / HAIR COLOR RECOMMENDATIONS</h2>
-        <p class="fst-italic text-secondary mb-4">{{ getHairGuidance(processedResult.colorType) }}</p>
+      <section class="mb-4" v-if="processedResult.hairColor">
+        <h2 class="h4 border-bottom pb-2 mb-3">发色推荐 / HAIR COLOR RECOMMENDATIONS</h2>
+        <p class="fst-italic text-secondary mb-3 small">{{ getHairGuidance(processedResult.colorType) }}</p>
         
         <div class="row g-4">
           <div class="col-md-6">
-            <h3 class="h5 mb-3">推荐发色 / Recommended Hair Colors</h3>
-            <div class="d-flex flex-wrap gap-4">
+            <h3 class="h5 mb-2">推荐发色 / Recommended Hair Colors</h3>
+            <div class="d-flex flex-wrap gap-3">
               <div v-for="(color, index) in processedResult.hairColor.recommended || []" 
                    :key="`hair-${index}`"
                    class="text-center">
@@ -302,8 +305,8 @@
           </div>
           
           <div class="col-md-6">
-            <h3 class="h5 mb-3">避免发色 / Hair Colors to Avoid</h3>
-            <div class="d-flex flex-wrap gap-4">
+            <h3 class="h5 mb-2">避免发色 / Hair Colors to Avoid</h3>
+            <div class="d-flex flex-wrap gap-3">
               <div v-for="(color, index) in processedResult.hairColor.avoid || []" 
                    :key="`avoid-hair-${index}`"
                    class="text-center position-relative">
@@ -319,14 +322,14 @@
       </section>
 
       <!-- 规避雷区 -->
-      <section class="mb-5" v-if="processedResult.avoidZone">
-        <h2 class="border-bottom pb-2 mb-4">规避雷区 / COLORS TO AVOID</h2>
-        <p class="fst-italic text-secondary mb-4">以下色彩和风格可能会削弱您的自然魅力 / These colors may diminish your natural attributes</p>
+      <section class="mb-4" v-if="processedResult.avoidZone">
+        <h2 class="h4 border-bottom pb-2 mb-3">规避雷区 / COLORS TO AVOID</h2>
+        <p class="fst-italic text-secondary mb-3 small">以下色彩和风格可能会削弱您的自然魅力 / These colors may diminish your natural attributes</p>
         
         <div class="row g-4">
           <div class="col-md-4">
-            <h3 class="h5 mb-3">避免的色彩 / Colors to Avoid</h3>
-            <div class="d-flex flex-wrap gap-4">
+            <h3 class="h5 mb-2">避免的色彩 / Colors to Avoid</h3>
+            <div class="d-flex flex-wrap gap-3">
               <div v-for="(color, index) in processedResult.avoidZone.clothing || []" 
                    :key="`avoid-${index}`"
                    class="text-center position-relative">
@@ -340,8 +343,8 @@
           </div>
           
           <div class="col-md-4" v-if="processedResult.avoidZone.makeup && processedResult.avoidZone.makeup.length">
-            <h3 class="h5 mb-3">避免的妆容色彩 / Makeup Colors to Avoid</h3>
-            <div class="d-flex flex-wrap gap-4">
+            <h3 class="h5 mb-2">避免的妆容色彩 / Makeup Colors to Avoid</h3>
+            <div class="d-flex flex-wrap gap-3">
               <div v-for="(color, index) in processedResult.avoidZone.makeup" 
                    :key="`avoid-makeup-${index}`"
                    class="text-center position-relative">
@@ -355,7 +358,7 @@
           </div>
           
           <div class="col-md-4" v-if="processedResult.avoidZone.styles && processedResult.avoidZone.styles.length">
-            <h3 class="h5 mb-3">避免的风格 / Styles to Avoid</h3>
+            <h3 class="h5 mb-2">避免的风格 / Styles to Avoid</h3>
             <ul class="ps-4">
               <li v-for="(style, index) in processedResult.avoidZone.styles" 
                   :key="`avoid-style-${index}`"
@@ -368,7 +371,7 @@
       </section>
 
       <!-- 底部操作栏 -->
-      <div class="d-flex justify-content-center gap-3 my-5 pt-4 border-top">
+      <div class="d-flex justify-content-center gap-3 my-4 pt-3 border-top">
         <button class="btn btn-primary" @click="downloadReport">保存报告</button>
         <button class="btn btn-secondary" @click="shareReport">分享报告</button>
         <button class="btn btn-outline-secondary" @click="$emit('regenerate')">重新生成</button>
@@ -378,13 +381,42 @@
         <div>© {{ new Date().getFullYear() }} 个人色彩管家 / Personal Color Master</div>
         <div>生成时间: {{ formattedDate }}</div>
       </footer>
-    </div>
 
+      <!-- 返回顶部按钮 -->
+      <button 
+        class="btn rounded-circle back-to-top" 
+        @click="scrollToTop"
+        v-show="showBackToTop"
+      >
+        <i class="bi bi-arrow-up"></i>
+      </button>
+    </div>
   </div>
 </template>
 
+<style scoped>
+/* 确保按钮字体统一 */
+.btn {
+  font-family: var(--font-family-base) !important;
+}
+
+/* 保留少量必要的自定义样式 */
+.letter-spacing-2 {
+  letter-spacing: 0.2em;
+}
+
+/* 设置报告Logo样式 */
+.report-logo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+/* 不再需要单独的返回顶部按钮样式，使用全局样式 */
+</style>
+
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import html2canvas from 'html2canvas'
 
 const props = defineProps({
@@ -421,6 +453,26 @@ const loadingProgress = ref(0)
 const progressInterval = ref(null)
 const activeTab = ref('clothing')
 
+// 返回顶部相关
+const showBackToTop = ref(false)
+
+// 监听滚动事件，控制返回顶部按钮显示
+const handleScroll = () => {
+  if (window.scrollY > 300) {
+    showBackToTop.value = true
+  } else {
+    showBackToTop.value = false
+  }
+}
+
+// 滚动到顶部
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
+}
+
 // 确保有足够的空间显示标题
 onMounted(() => {
   // 确保滚动到顶部
@@ -433,9 +485,17 @@ onMounted(() => {
     }, 200);
   }
   
+  // 监听滚动事件
+  window.addEventListener('scroll', handleScroll)
+  
   return () => {
     clearInterval(progressInterval.value)
   }
+})
+
+onUnmounted(() => {
+  // 移除滚动事件监听
+  window.removeEventListener('scroll', handleScroll)
 })
 
 const isJsonResult = computed(() => {
@@ -681,12 +741,4 @@ function getChromaPosition() {
     left: '80%' // 根据实际色彩特征调整
   }
 }
-</script>
-
-<style scoped>
-/* 保留少量必要的自定义样式 */
-.letter-spacing-2 {
-  letter-spacing: 0.2em;
-}
-
-</style> 
+</script> 
