@@ -6,26 +6,26 @@
         <div class="border-0 p-3 mx-auto" style="max-width: 400px;">
           <div >
             <label class="btn btn-primary btn-lg d-block mx-auto" style="max-width: 200px;">
-              <input 
-                type="file" 
-                accept="image/*" 
-                @change="handleFileSelect" 
+        <input 
+          type="file" 
+          accept="image/*" 
+          @change="handleFileSelect" 
                 class="d-none"
-              >
+        >
               <i class="bi bi-upload me-2"></i>
               {{ imageUrl ? '重新上传照片' : '上传照片' }}
-            </label>
+      </label>
             <small v-if="!imageUrl" class="text-secondary d-block mt-2">请上传一张清晰的正面照片</small>
           </div>
         </div>
-      </div>
+    </div>
 
       <!-- 照片编辑和结果区域 -->
       <div v-if="imageUrl" class="col-12">
         <div class="row g-4">
           <!-- 照片编辑区 -->
           <div class="col-md-8 mb-3">
-            <!-- 照片展示区域 -->
+        <!-- 照片展示区域 -->
             <div class="card shadow-sm border-0">
               <div class="card-header">
                 <h5 class="card-title mb-0 text-center">检测区域</h5>
@@ -56,8 +56,8 @@
                     @touchend="handleTouchEnd"
                   >
                     <!-- 图片容器 -->
-                    <div 
-                      class="image-container" 
+        <div 
+          class="image-container" 
                       :style="{ 
                         width: `${imageWidth}px`, 
                         height: `${imageHeight}px`,
@@ -65,38 +65,38 @@
                       }"
                       @mousedown="startImageDrag"
                       :class="{ 'dragging': isImageDragging }"
-                    >
-                      <img 
-                        :src="imageUrl" 
-                        alt="上传的照片" 
-                        class="uploaded-image" 
-                        ref="uploadedImage"
-                      />
-                      
-                      <!-- 各面部区域的检测椭圆 -->
-                      <div 
-                        v-for="(region, key) in detectionRegions" 
-                        :key="key"
-                        class="detection-region"
-                        :class="{ 'active': activeRegion === key }"
-                        :style="{
-                          width: `${region.width}px`,
-                          height: `${region.height}px`,
-                          left: `${region.x}px`,
-                          top: `${region.y}px`,
-                          backgroundColor: region.color,
-                          borderColor: activeRegion === key ? '#00aaff' : 'rgba(255,255,255,0.5)'
-                        }"
+        >
+          <img 
+            :src="imageUrl" 
+            alt="上传的照片" 
+            class="uploaded-image" 
+            ref="uploadedImage"
+          />
+          
+          <!-- 各面部区域的检测椭圆 -->
+          <div 
+            v-for="(region, key) in detectionRegions" 
+            :key="key"
+            class="detection-region"
+            :class="{ 'active': activeRegion === key }"
+            :style="{
+              width: `${region.width}px`,
+              height: `${region.height}px`,
+              left: `${region.x}px`,
+              top: `${region.y}px`,
+              backgroundColor: region.color,
+              borderColor: activeRegion === key ? '#00aaff' : 'rgba(255,255,255,0.5)'
+            }"
                         @mousedown.stop="startDrag($event, key)"
                         @touchstart.stop="startDrag($event, key)"
                         @click.stop="setActiveRegion(key)"
-                      >
-                        <span class="region-label">{{ region.label }}</span>
+          >
+            <span class="region-label">{{ region.label }}</span>
                       </div>
                     </div>
-                  </div>
-                </div>
-                
+          </div>
+        </div>
+        
                 <!-- 操作提示 -->
                 <div class="alert alert-info mt-3 mb-0 py-2 small">
                   <div class="d-flex align-items-center">
@@ -105,9 +105,9 @@
                     <div class="d-md-none">双指捏合可放大缩小照片拖动照片调整位置，点击圆形区域调整大小</div>
                   </div>
                 </div>
-              </div>
             </div>
-            
+          </div>
+          
 
           </div>
           
@@ -124,12 +124,12 @@
                     <span>宽度</span>
                     <span class="text-secondary small">{{ Math.round(detectionRegions[activeRegion].width) }}px</span>
                   </label>
-                  <input 
-                    type="range" 
+              <input 
+                type="range" 
                     class="form-range" 
-                    v-model="detectionRegions[activeRegion].width" 
-                    :min="20" 
-                    :max="imageWidth / 2"
+                v-model="detectionRegions[activeRegion].width" 
+                :min="20" 
+                :max="imageWidth / 2" 
                     @input="handleRangeInteraction"
                   />
                 </div>
@@ -138,18 +138,18 @@
                     <span>高度</span>
                     <span class="text-secondary small">{{ Math.round(detectionRegions[activeRegion].height) }}px</span>
                   </label>
-                  <input 
-                    type="range" 
+              <input 
+                type="range" 
                     class="form-range" 
-                    v-model="detectionRegions[activeRegion].height" 
-                    :min="20" 
-                    :max="imageHeight / 2"
+                v-model="detectionRegions[activeRegion].height" 
+                :min="20" 
+                :max="imageHeight / 2" 
                     @input="handleRangeInteraction"
-                  />
-                </div>
-              </div>
-            </div>
-
+              />
+          </div>
+        </div>
+      </div>
+      
             <div class="card shadow-sm border-0">
               <div class="card-header">
                 <h5 class="mb-0 text-center">检测结果</h5>
@@ -164,30 +164,30 @@
               </div>
               <div class="card-body p-3">
                 <div class="row g-3">
-                  <div 
-                    v-for="(region, key) in detectionRegions" 
-                    :key="key"
+          <div 
+            v-for="(region, key) in detectionRegions" 
+            :key="key"
                     class="col-12 col-sm-6 col-md-12"
-                    @click="setActiveRegion(key)"
-                  >
+            @click="setActiveRegion(key)"
+          >
                     <div class="color-result-item d-flex align-items-center p-2 border rounded-3"
                          :class="{'bg-light': activeRegion === key}">
                       <span class="me-2 fw-medium">{{ region.label }}:</span>
-                      <div 
+            <div 
                         class="color-preview me-2 border" 
-                        :style="{ backgroundColor: region.color }"
-                      ></div>
+              :style="{ backgroundColor: region.color }"
+            ></div>
                       <span class="small text-monospace ms-auto">{{ region.color }}</span>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-
-
           </div>
         </div>
+        
+
+        </div>
       </div>
+    </div>
     </div>
 
     <!-- 回到顶部按钮 -->
@@ -630,34 +630,34 @@ const detectColors = () => {
   
   // 自动将检测结果发送给父组件
   if (allColorsDetected.value) {
-    const colors = {
-      forehead: detectionRegions.forehead.color,
-      cheeks: ((color1, color2) => {
-        // 计算左右脸颊的平均色
-        const hex1 = color1.replace('#', '');
-        const hex2 = color2.replace('#', '');
-        
-        const r1 = parseInt(hex1.substring(0, 2), 16);
-        const g1 = parseInt(hex1.substring(2, 4), 16);
-        const b1 = parseInt(hex1.substring(4, 6), 16);
-        
-        const r2 = parseInt(hex2.substring(0, 2), 16);
-        const g2 = parseInt(hex2.substring(2, 4), 16);
-        const b2 = parseInt(hex2.substring(4, 6), 16);
-        
-        const r = Math.round((r1 + r2) / 2);
-        const g = Math.round((g1 + g2) / 2);
-        const b = Math.round((b1 + b2) / 2);
-        
-        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-      })(detectionRegions.leftCheek.color, detectionRegions.rightCheek.color),
-      neck: detectionRegions.neck.color,
-      lips: detectionRegions.lips.color,
-      hair: detectionRegions.hair.color,
+  const colors = {
+    forehead: detectionRegions.forehead.color,
+    cheeks: ((color1, color2) => {
+      // 计算左右脸颊的平均色
+      const hex1 = color1.replace('#', '');
+      const hex2 = color2.replace('#', '');
+      
+      const r1 = parseInt(hex1.substring(0, 2), 16);
+      const g1 = parseInt(hex1.substring(2, 4), 16);
+      const b1 = parseInt(hex1.substring(4, 6), 16);
+      
+      const r2 = parseInt(hex2.substring(0, 2), 16);
+      const g2 = parseInt(hex2.substring(2, 4), 16);
+      const b2 = parseInt(hex2.substring(4, 6), 16);
+      
+      const r = Math.round((r1 + r2) / 2);
+      const g = Math.round((g1 + g2) / 2);
+      const b = Math.round((b1 + b2) / 2);
+      
+      return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    })(detectionRegions.leftCheek.color, detectionRegions.rightCheek.color),
+    neck: detectionRegions.neck.color,
+    lips: detectionRegions.lips.color,
+    hair: detectionRegions.hair.color,
       eyes: '#2F4F4F' // 由于无法准确检测，使用默认深灰色
-    };
-    
-    emit('colorsDetected', colors);
+  };
+  
+  emit('colorsDetected', colors);
   }
 };
 

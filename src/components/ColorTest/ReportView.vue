@@ -1,365 +1,385 @@
 <template>
-  <div class="report-view">
-    <div class="loading-container" v-if="loading">
-      <div class="spinner"></div>
-      <p class="loading-text">正在分析您的个人色彩特征...</p>
-      <p class="loading-subtext">这可能需要一点时间，请耐心等待</p>
-      <div class="loading-progress">
+  <div class="container mb-5" style="height: 100%;">
+    <!-- 加载状态 -->
+    <div class="d-flex flex-column justify-content-center align-items-center py-5" v-if="loading">
+      <div class="spinner-border text-primary mb-4" role="status">
+        <span class="visually-hidden">加载中...</span>
+      </div>
+      <p class="h5">正在分析您的个人色彩特征...</p>
+      <p class="text-muted">这可能需要一点时间，请耐心等待</p>
+      <div class="progress w-75 mt-3">
         <div class="progress-bar" :style="{ width: `${loadingProgress}%` }"></div>
       </div>
     </div>
     
-    <div v-else-if="error" class="error-container">
-      <div class="error-icon">!</div>
-      <h3>分析失败</h3>
-      <p>{{ errorMessage }}</p>
-      <div class="error-actions">
-        <button class="btn primary" @click="$emit('retry')">
-          重新生成
-        </button>
-        <button class="btn secondary" @click="$emit('cancel')">
-          返回
-        </button>
+    <!-- 错误状态 -->
+    <div v-else-if="error" class="d-flex flex-column justify-content-center align-items-center py-5">
+      <div class="display-1 text-danger mb-3">!</div>
+      <h3 class="mb-3">分析失败</h3>
+      <p class="mb-4">{{ errorMessage }}</p>
+      <div class="d-flex gap-3">
+        <button class="btn btn-primary" @click="$emit('retry')">重新生成</button>
+        <button class="btn btn-secondary" @click="$emit('cancel')">返回</button>
       </div>
     </div>
     
-    <div v-else-if="result" class="result-container" ref="resultContainer">
-      <div class="result-header">
-        <h2>个人色彩分析报告</h2>
-        <div class="result-meta">
-          <span>生成时间: {{ formattedDate }}</span>
+    <!-- 报告内容 -->
+    <div v-else-if="result" ref="resultContainer" class="pt-5 mt-4 ">
+      <!-- 报告头部 -->
+      <header class="text-center mb-5 pt-4">
+        <div class="text-primary fs-5 mb-2">为您定制 / MAKE-UP FOR THE</div>
+        <h1 class="display-3 fw-bold">{{ processedResult.colorType }}</h1>
+        <div class="fs-4 text-uppercase letter-spacing-2">{{ getSeasonTraits(processedResult.colorType) }}</div>
+      </header>
+
+      <div class="row g-4 mb-5">
+        <div class="col-md-8">
+          <!-- 用户信息 -->
+          <section class="mb-4" v-if="hasUserInfo">
+            <h2 class="border-bottom pb-2 mb-4">个人信息 / PERSONAL INFO</h2>
+            <div class="row g-3">
+              <div class="col-md-6" v-if="props.userInfo.nickname">
+                <span class="fw-medium me-2">昵称:</span>
+                <span>{{ props.userInfo.nickname }}</span>
+              </div>
+              <div class="col-md-6" v-if="props.userInfo.gender">
+                <span class="fw-medium me-2">性别:</span>
+                <span>{{ props.userInfo.gender }}</span>
+              </div>
+              <div class="col-md-6" v-if="props.userInfo.age">
+                <span class="fw-medium me-2">年龄:</span>
+                <span>{{ props.userInfo.age }}</span>
+              </div>
+              <div class="col-md-6" v-if="props.userInfo.occupation">
+                <span class="fw-medium me-2">职业:</span>
+                <span>{{ props.userInfo.occupation }}</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- a检测色彩数据 -->
+          <section class="mb-4" v-if="hasColorSelection">
+            <h2 class="border-bottom pb-2 mb-4">检测色彩数据 / DETECTED COLORS</h2>
+            <div class="row g-3">
+              <div class="col-4 col-md-2 text-center" v-for="(colorKey, label) in {
+                '前额 / Forehead': 'forehead',
+                '脸颊 / Cheeks': 'cheeks',
+                '颈部 / Neck': 'neck',
+                '唇部 / Lips': 'lips',
+                '发色 / Hair': 'hair',
+                '眼睛 / Eyes': 'eyes'
+              }">
+                <div class="rounded-circle mx-auto mb-2 shadow-sm" 
+                     style="width: 40px; height: 40px; border: 1px solid rgba(0,0,0,0.1)"
+                     :style="{ backgroundColor: props.colorSelection[colorKey] }"></div>
+                <span class="small text-secondary">{{ label }}</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- 色彩分析 -->
+          <section class="mb-4">
+            <h2 class="border-bottom pb-2 mb-4">色彩特征分析 / COLOR ANALYSIS</h2>
+            <p class="mb-3">{{ processedResult.analysisReason }}</p>
+            <p v-if="processedResult.userProfile && processedResult.userProfile.summary">
+              {{ processedResult.userProfile.summary }}
+            </p>
+          </section>
+
+          <!-- 色彩调色板 -->
+          <section class="mb-4">
+            <h2 class="border-bottom pb-2 mb-4">推荐色彩调色板 / COLOUR PALETTE</h2>
+            <div class="d-flex flex-wrap gap-1">
+              <div v-for="(color, index) in processedResult.colorCards.primary" 
+                   :key="`palette-${index}`"
+                   class="d-inline-block"
+                   style="aspect-ratio: 1; width: 25px"
+                   :style="{ backgroundColor: getColorCode(color) }">
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="col-md-4">
+          <!-- 色彩维度 -->
+          <section class="mb-4">
+            <h2 class="border-bottom pb-2 mb-4">色彩维度 / COLOUR DIMENSIONS</h2>
+            
+            <div class="mb-4">
+              <div class="mb-2">色相 / HUE</div>
+              <div class="position-relative mb-3" style="height: 2px; background-color: #ddd;">
+                <div class="position-absolute" 
+                     style="width: 12px; height: 12px; background-color: #000; border-radius: 50%; top: 50%; transform: translate(-50%, -50%)"
+                     :style="getHuePosition()"></div>
+              </div>
+              <div class="d-flex justify-content-between small text-secondary">
+                <span>冷色调 / cool</span>
+                <span>暖色调 / warm</span>
+              </div>
+            </div>
+            
+            <div class="mb-4">
+              <div class="mb-2">明度 / VALUE</div>
+              <div class="position-relative mb-3" style="height: 2px; background-color: #ddd;">
+                <div class="position-absolute" 
+                     style="width: 12px; height: 12px; background-color: #000; border-radius: 50%; top: 50%; transform: translate(-50%, -50%)"
+                     :style="getValuePosition()"></div>
+              </div>
+              <div class="d-flex justify-content-between small text-secondary">
+                <span>浅色 / light</span>
+                <span>深色 / dark</span>
+              </div>
+            </div>
+            
+            <div class="mb-4">
+              <div class="mb-2">饱和度 / CHROMA</div>
+              <div class="position-relative mb-3" style="height: 2px; background-color: #ddd;">
+                <div class="position-absolute" 
+                     style="width: 12px; height: 12px; background-color: #000; border-radius: 50%; top: 50%; transform: translate(-50%, -50%)"
+                     :style="getChromaPosition()"></div>
+              </div>
+              <div class="d-flex justify-content-between small text-secondary">
+                <span>柔和 / soft</span>
+                <span>鲜艳 / bright</span>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
-      
-      <div class="result-content" v-if="isJsonResult">
-        <div class="user-profile-card section">
-          <div class="user-info">
-            <div class="color-type-badge">{{ processedResult.colorType }}</div>
-            <div class="user-details">
-              <h3 class="section-title">色彩类型分析</h3>
-              <p class="analysis-reason">{{ processedResult.analysisReason }}</p>
-              <p class="user-summary">{{ processedResult.userProfile.summary }}</p>
-            </div>
-          </div>
-          
-          <!-- 用户基本信息 -->
-          <div class="user-basic-info mt-4" v-if="hasUserInfo">
-            <h4 class="subsection-title">个人信息</h4>
-            <div class="user-info-grid">
-              <div class="info-item" v-if="props.userInfo.nickname">
-                <span class="info-label">昵称:</span>
-                <span class="info-value">{{ props.userInfo.nickname }}</span>
-              </div>
-              <div class="info-item" v-if="props.userInfo.gender">
-                <span class="info-label">性别:</span>
-                <span class="info-value">{{ props.userInfo.gender }}</span>
-              </div>
-              <div class="info-item" v-if="props.userInfo.age">
-                <span class="info-label">年龄:</span>
-                <span class="info-value">{{ props.userInfo.age }}</span>
-              </div>
-              <div class="info-item" v-if="props.userInfo.occupation">
-                <span class="info-label">职业:</span>
-                <span class="info-value">{{ props.userInfo.occupation }}</span>
-              </div>
-            </div>
-          </div>
-          
-          <!-- 色彩检测数据 -->
-          <div class="color-detection-data mt-4" v-if="hasColorSelection">
-            <h4 class="subsection-title">检测色彩数据</h4>
-            <div class="detected-colors-grid">
-              <div class="detected-color-item">
-                <div class="color-dot" :style="{ backgroundColor: props.colorSelection.forehead }"></div>
-                <span class="color-label">前额</span>
-              </div>
-              <div class="detected-color-item">
-                <div class="color-dot" :style="{ backgroundColor: props.colorSelection.cheeks }"></div>
-                <span class="color-label">脸颊</span>
-              </div>
-              <div class="detected-color-item">
-                <div class="color-dot" :style="{ backgroundColor: props.colorSelection.neck }"></div>
-                <span class="color-label">颈部</span>
-              </div>
-              <div class="detected-color-item">
-                <div class="color-dot" :style="{ backgroundColor: props.colorSelection.lips }"></div>
-                <span class="color-label">唇部</span>
-              </div>
-              <div class="detected-color-item">
-                <div class="color-dot" :style="{ backgroundColor: props.colorSelection.hair }"></div>
-                <span class="color-label">发色</span>
-              </div>
-              <div class="detected-color-item">
-                <div class="color-dot" :style="{ backgroundColor: props.colorSelection.eyes }"></div>
-                <span class="color-label">眼睛</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="color-cards mt-4">
-            <h4 class="subsection-title">推荐色板</h4>
-            <div class="color-category">
-              <h5>主要色彩</h5>
-              <div class="color-chips">
-                <div 
-                  v-for="(color, index) in processedResult.colorCards.primary" 
-                  :key="`primary-${index}`"
-                  class="color-chip"
-                  :style="{ backgroundColor: getColorCode(color) }"
-                >
-                  <span class="color-name">{{ getColorName(color) }}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div class="color-category">
-              <h5>次要色彩</h5>
-              <div class="color-chips">
-                <div 
-                  v-for="(color, index) in processedResult.colorCards.secondary" 
-                  :key="`secondary-${index}`"
-                  class="color-chip"
-                  :style="{ backgroundColor: getColorCode(color) }"
-                >
-                  <span class="color-name">{{ getColorName(color) }}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div class="color-category">
-              <h5>点缀色彩</h5>
-              <div class="color-chips">
-                <div 
-                  v-for="(color, index) in processedResult.colorCards.accent" 
-                  :key="`accent-${index}`"
-                  class="color-chip"
-                  :style="{ backgroundColor: getColorCode(color) }"
-                >
-                  <span class="color-name">{{ getColorName(color) }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+
+      <!-- 妆容推荐 -->
+      <section class="mb-5">
+        <h2 class="border-bottom pb-2 mb-4">底妆推荐 / COMPLEXION MAKE-UP</h2>
+        <p class="fst-italic text-secondary mb-4">应与肤色相匹配，选择哑光或自然的质地 / must be skin-matched; choose matte or natural finishes</p>
         
-        <div class="recommendations-section section">
-          <div class="tabs">
-            <div 
-              class="tab" 
-              :class="{ active: activeTab === 'clothing' }" 
-              @click="activeTab = 'clothing'"
-            >
-              服装搭配
+        <div class="mb-4">
+          <h3 class="h5 mb-3">粉底与遮瑕 / Foundation & Concealers</h3>
+          <div class="d-flex flex-wrap gap-4 mb-3">
+            <div v-for="(color, index) in processedResult.makeup.foundation || []" 
+                 :key="`foundation-${index}`"
+                 class="text-center">
+              <div style="width: 60px; height: 40px; margin-bottom: 0.5rem;" 
+                   :style="{ backgroundColor: getColorCode(color) }"></div>
+              <div class="small text-secondary" style="max-width: 80px;">{{ getColorName(color) }}</div>
             </div>
-            <div 
-              class="tab" 
-              :class="{ active: activeTab === 'makeup' }" 
-              @click="activeTab = 'makeup'"
-            >
-              妆容推荐
-            </div>
-            <div 
-              class="tab" 
-              :class="{ active: activeTab === 'hair' }" 
-              @click="activeTab = 'hair'"
-            >
-              发色建议
+          </div>
+          <p v-if="typeof processedResult.makeup.foundation === 'string'">
+            {{ processedResult.makeup.foundation }}
+          </p>
+        </div>
+      </section>
+
+      <!-- 眼妆 -->
+      <section class="mb-5">
+        <h2 class="border-bottom pb-2 mb-4">眼妆推荐 / EYE MAKE-UP</h2>
+        <p class="fst-italic text-secondary mb-4">选择冰冷或鲜艳的色彩，避免过于温暖和柔和的色调 / choose icy or bright colours; avoid overly warm & soft colours</p>
+        
+        <div class="row g-4">
+          <div class="col-md-4">
+            <h3 class="h5 mb-3">眼影 / Eyeshadow</h3>
+            <div class="d-flex flex-wrap gap-4">
+              <div v-for="(color, index) in processedResult.makeup.eyeshadow || []" 
+                   :key="`eyeshadow-${index}`"
+                   class="text-center">
+                <div style="width: 60px; height: 40px; margin-bottom: 0.5rem;" 
+                     :style="{ backgroundColor: getColorCode(color) }"></div>
+                <div class="small text-secondary" style="max-width: 80px;">{{ getColorName(color) }}</div>
+              </div>
             </div>
           </div>
           
-          <div class="tab-content">
-            <div v-if="activeTab === 'clothing'" class="tab-pane">
-              <div class="recommendation-category">
-                <h4 class="subsection-title">推荐色彩</h4>
-                <div class="color-chips">
-                  <div 
-                    v-for="(color, index) in processedResult.clothing.recommended" 
-                    :key="`clothing-${index}`"
-                    class="color-chip"
-                    :style="{ backgroundColor: getColorCode(color) }"
-                  >
-                    <span class="color-name">{{ getColorName(color) }}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="recommendation-category">
-                <h4 class="subsection-title">推荐风格</h4>
-                <ul class="style-list">
-                  <li v-for="(style, index) in processedResult.clothing.styles" :key="`style-${index}`">
-                    {{ style }}
-                  </li>
-                </ul>
-              </div>
-              
-              <div class="recommendation-category">
-                <h4 class="subsection-title">单品示例</h4>
-                <ul class="example-list">
-                  <li v-for="(example, index) in processedResult.clothing.examples" :key="`example-${index}`">
-                    {{ example }}
-                  </li>
-                </ul>
-              </div>
-              
-              <div class="recommendation-category" v-if="processedResult.celebrities">
-                <h4 class="subsection-title">明星示例</h4>
-                <div class="celebrities">
-                  <span class="celebrity-tag" v-for="(celeb, index) in processedResult.celebrities" :key="`celeb-${index}`">
-                    {{ celeb }}
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <div v-if="activeTab === 'makeup'" class="tab-pane">
-              <div class="recommendation-category">
-                <h4 class="subsection-title">底妆推荐</h4>
-                <p>{{ processedResult.makeup.foundation }}</p>
-              </div>
-              
-              <div class="recommendation-category">
-                <h4 class="subsection-title">唇色推荐</h4>
-                <div class="color-chips">
-                  <div 
-                    v-for="(color, index) in processedResult.makeup.lipstick" 
-                    :key="`lipstick-${index}`"
-                    class="color-chip"
-                    :style="{ backgroundColor: getColorCode(color) }"
-                  >
-                    <span class="color-name">{{ getColorName(color) }}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="recommendation-category">
-                <h4 class="subsection-title">眼影推荐</h4>
-                <div class="color-chips">
-                  <div 
-                    v-for="(color, index) in processedResult.makeup.eyeshadow" 
-                    :key="`eyeshadow-${index}`"
-                    class="color-chip"
-                    :style="{ backgroundColor: getColorCode(color) }"
-                  >
-                    <span class="color-name">{{ getColorName(color) }}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="recommendation-category">
-                <h4 class="subsection-title">腮红推荐</h4>
-                <div class="color-chips">
-                  <div 
-                    v-for="(color, index) in processedResult.makeup.blush" 
-                    :key="`blush-${index}`"
-                    class="color-chip"
-                    :style="{ backgroundColor: getColorCode(color) }"
-                  >
-                    <span class="color-name">{{ getColorName(color) }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div v-if="activeTab === 'hair'" class="tab-pane">
-              <div class="recommendation-category">
-                <h4 class="subsection-title">推荐发色</h4>
-                <div class="color-chips">
-                  <div 
-                    v-for="(color, index) in processedResult.hairColor.recommended" 
-                    :key="`hairRec-${index}`"
-                    class="color-chip hair-color-chip"
-                    :style="{ backgroundColor: getColorCode(color) }"
-                  >
-                    <span class="color-name">{{ getColorName(color) }}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="recommendation-category">
-                <h4 class="subsection-title">避免发色</h4>
-                <div class="color-chips">
-                  <div 
-                    v-for="(color, index) in processedResult.hairColor.avoid" 
-                    :key="`hairAvoid-${index}`"
-                    class="color-chip hair-color-chip avoid"
-                    :style="{ backgroundColor: getColorCode(color) }"
-                  >
-                    <span class="color-name">{{ getColorName(color) }}</span>
-                  </div>
-                </div>
+          <div class="col-md-4">
+            <h3 class="h5 mb-3">眼线 / Eyeliner</h3>
+            <div class="d-flex flex-wrap gap-4">
+              <div v-for="(color, index) in processedResult.makeup.eyeliner || processedResult.makeup.liner || []" 
+                   :key="`eyeliner-${index}`"
+                   class="text-center">
+                <div style="width: 60px; height: 40px; margin-bottom: 0.5rem;" 
+                     :style="{ backgroundColor: getColorCode(color) }"></div>
+                <div class="small text-secondary" style="max-width: 80px;">{{ getColorName(color) }}</div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <div class="avoid-zone-section section">
-          <h3 class="section-title">
-            <i class="warning-icon">⚠️</i> 规避雷区
-          </h3>
           
-          <div class="avoid-categories">
-            <div class="avoid-category">
-              <h4 class="subsection-title">避免的服装色彩</h4>
-              <div class="color-chips">
-                <div 
-                  v-for="(color, index) in processedResult.avoidZone.clothing" 
-                  :key="`avoidClothing-${index}`"
-                  class="color-chip avoid"
-                  :style="{ backgroundColor: getColorCode(color) }"
-                >
-                  <span class="color-name">{{ getColorName(color) }}</span>
-                </div>
+          <div class="col-md-4">
+            <h3 class="h5 mb-3">睫毛膏 / Mascara</h3>
+            <div class="d-flex flex-wrap gap-4">
+              <div v-for="(color, index) in processedResult.makeup.mascara || []" 
+                   :key="`mascara-${index}`"
+                   class="text-center">
+                <div style="width: 60px; height: 40px; margin-bottom: 0.5rem;" 
+                     :style="{ backgroundColor: getColorCode(color) }"></div>
+                <div class="small text-secondary" style="max-width: 80px;">{{ getColorName(color) }}</div>
               </div>
-            </div>
-            
-            <div class="avoid-category">
-              <h4 class="subsection-title">避免的妆容色彩</h4>
-              <div class="color-chips">
-                <div 
-                  v-for="(color, index) in processedResult.avoidZone.makeup" 
-                  :key="`avoidMakeup-${index}`"
-                  class="color-chip avoid"
-                  :style="{ backgroundColor: getColorCode(color) }"
-                >
-                  <span class="color-name">{{ getColorName(color) }}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div class="avoid-category">
-              <h4 class="subsection-title">避免的风格</h4>
-              <ul class="avoid-list">
-                <li v-for="(style, index) in processedResult.avoidZone.styles" :key="`avoidStyle-${index}`">
-                  {{ style }}
-                </li>
-              </ul>
             </div>
           </div>
         </div>
+      </section>
+
+      <!-- 唇妆和腮红 -->
+      <section class="mb-5">
+        <h2 class="border-bottom pb-2 mb-4">唇部与腮红推荐 / LIP & CHEEK MAKE-UP</h2>
+        <p class="fst-italic text-secondary mb-4">光泽感、丝缎感或微亮质地，避免裸色和橙色调 / gloss, satin, or lustre; avoid nude & orange-based colours</p>
         
-        <div class="xiaohongshu-section section">
-          <h3 class="section-title">个性化推荐</h3>
-          <p class="placeholder-text">更多精彩内容敬请期待...</p>
+        <div class="row g-4">
+          <div class="col-md-6">
+            <h3 class="h5 mb-3">腮红 / Blush</h3>
+            <div class="d-flex flex-wrap gap-4">
+              <div v-for="(color, index) in processedResult.makeup.blush || []" 
+                   :key="`blush-${index}`"
+                   class="text-center">
+                <div style="width: 60px; height: 40px; margin-bottom: 0.5rem;" 
+                     :style="{ backgroundColor: getColorCode(color) }"></div>
+                <div class="small text-secondary" style="max-width: 80px;">{{ getColorName(color) }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <h3 class="h5 mb-3">唇膏 / Lipstick</h3>
+            <div class="d-flex flex-wrap gap-4">
+              <div v-for="(color, index) in processedResult.makeup.lipstick || []" 
+                   :key="`lipstick-${index}`"
+                   class="text-center">
+                <div style="width: 60px; height: 40px; margin-bottom: 0.5rem;" 
+                     :style="{ backgroundColor: getColorCode(color) }"></div>
+                <div class="small text-secondary" style="max-width: 80px;">{{ getColorName(color) }}</div>
+              </div>
+            </div>
+          </div>
         </div>
+      </section>
+
+      <!-- 服装推荐 -->
+      <section class="mb-5" v-if="processedResult.clothing">
+        <h2 class="border-bottom pb-2 mb-4">服装推荐 / CLOTHING RECOMMENDATIONS</h2>
+        <p class="fst-italic text-secondary mb-4">{{ getClothingGuidance(processedResult.colorType) }}</p>
+        
+        <div class="row g-4">
+          <div class="col-md-6">
+            <h3 class="h5 mb-3">推荐色彩 / Recommended Colors</h3>
+            <div class="d-flex flex-wrap gap-4">
+              <div v-for="(color, index) in processedResult.clothing.recommended || []" 
+                   :key="`clothing-${index}`"
+                   class="text-center">
+                <div style="width: 60px; height: 40px; margin-bottom: 0.5rem;" 
+                     :style="{ backgroundColor: getColorCode(color) }"></div>
+                <div class="small text-secondary" style="max-width: 80px;">{{ getColorName(color) }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <h3 class="h5 mb-3">建议风格 / Recommended Styles</h3>
+            <ul class="ps-4">
+              <li v-for="(style, index) in processedResult.clothing.styles || []" 
+                  :key="`style-${index}`"
+                  class="mb-2">
+                {{ style }}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 发色推荐 -->
+      <section class="mb-5" v-if="processedResult.hairColor">
+        <h2 class="border-bottom pb-2 mb-4">发色推荐 / HAIR COLOR RECOMMENDATIONS</h2>
+        <p class="fst-italic text-secondary mb-4">{{ getHairGuidance(processedResult.colorType) }}</p>
+        
+        <div class="row g-4">
+          <div class="col-md-6">
+            <h3 class="h5 mb-3">推荐发色 / Recommended Hair Colors</h3>
+            <div class="d-flex flex-wrap gap-4">
+              <div v-for="(color, index) in processedResult.hairColor.recommended || []" 
+                   :key="`hair-${index}`"
+                   class="text-center">
+                <div style="width: 60px; height: 40px; margin-bottom: 0.5rem;" 
+                     :style="{ backgroundColor: getColorCode(color) }"></div>
+                <div class="small text-secondary" style="max-width: 80px;">{{ getColorName(color) }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <h3 class="h5 mb-3">避免发色 / Hair Colors to Avoid</h3>
+            <div class="d-flex flex-wrap gap-4">
+              <div v-for="(color, index) in processedResult.hairColor.avoid || []" 
+                   :key="`avoid-hair-${index}`"
+                   class="text-center position-relative">
+                <div style="width: 60px; height: 40px; margin-bottom: 0.5rem;" 
+                     :style="{ backgroundColor: getColorCode(color) }">
+                  <div class="position-absolute top-50 start-50 translate-middle text-danger fw-bold fs-3">×</div>
+                </div>
+                <div class="small text-secondary" style="max-width: 80px;">{{ getColorName(color) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 规避雷区 -->
+      <section class="mb-5" v-if="processedResult.avoidZone">
+        <h2 class="border-bottom pb-2 mb-4">规避雷区 / COLORS TO AVOID</h2>
+        <p class="fst-italic text-secondary mb-4">以下色彩和风格可能会削弱您的自然魅力 / These colors may diminish your natural attributes</p>
+        
+        <div class="row g-4">
+          <div class="col-md-4">
+            <h3 class="h5 mb-3">避免的色彩 / Colors to Avoid</h3>
+            <div class="d-flex flex-wrap gap-4">
+              <div v-for="(color, index) in processedResult.avoidZone.clothing || []" 
+                   :key="`avoid-${index}`"
+                   class="text-center position-relative">
+                <div style="width: 60px; height: 40px; margin-bottom: 0.5rem;" 
+                     :style="{ backgroundColor: getColorCode(color) }">
+                  <div class="position-absolute top-50 start-50 translate-middle text-danger fw-bold fs-3">×</div>
+                </div>
+                <div class="small text-secondary" style="max-width: 80px;">{{ getColorName(color) }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-4" v-if="processedResult.avoidZone.makeup && processedResult.avoidZone.makeup.length">
+            <h3 class="h5 mb-3">避免的妆容色彩 / Makeup Colors to Avoid</h3>
+            <div class="d-flex flex-wrap gap-4">
+              <div v-for="(color, index) in processedResult.avoidZone.makeup" 
+                   :key="`avoid-makeup-${index}`"
+                   class="text-center position-relative">
+                <div style="width: 60px; height: 40px; margin-bottom: 0.5rem;" 
+                     :style="{ backgroundColor: getColorCode(color) }">
+                  <div class="position-absolute top-50 start-50 translate-middle text-danger fw-bold fs-3">×</div>
+                </div>
+                <div class="small text-secondary" style="max-width: 80px;">{{ getColorName(color) }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-4" v-if="processedResult.avoidZone.styles && processedResult.avoidZone.styles.length">
+            <h3 class="h5 mb-3">避免的风格 / Styles to Avoid</h3>
+            <ul class="ps-4">
+              <li v-for="(style, index) in processedResult.avoidZone.styles" 
+                  :key="`avoid-style-${index}`"
+                  class="mb-2">
+                {{ style }}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 底部操作栏 -->
+      <div class="d-flex justify-content-center gap-3 my-5 pt-4 border-top">
+        <button class="btn btn-primary" @click="downloadReport">保存报告</button>
+        <button class="btn btn-secondary" @click="shareReport">分享报告</button>
+        <button class="btn btn-outline-secondary" @click="$emit('regenerate')">重新生成</button>
       </div>
-      
-      <div class="result-content" v-else v-html="formattedResult"></div>
-      
-      <div class="actions">
-        <button class="btn primary" @click="downloadReport">
-          保存报告
-        </button>
-        <button class="btn secondary" @click="shareReport">
-          分享报告
-        </button>
-        <button class="btn outline" @click="$emit('regenerate')">
-          重新生成
-        </button>
-        <button class="btn outline" @click="$emit('cancel')">
-          返回
-        </button>
-      </div>
+
+      <footer class="text-center text-secondary small mt-4 pt-3 border-top">
+        <div>© {{ new Date().getFullYear() }} 个人色彩管家 / Personal Color Master</div>
+        <div>生成时间: {{ formattedDate }}</div>
+      </footer>
     </div>
+
   </div>
 </template>
 
@@ -401,6 +421,23 @@ const loadingProgress = ref(0)
 const progressInterval = ref(null)
 const activeTab = ref('clothing')
 
+// 确保有足够的空间显示标题
+onMounted(() => {
+  // 确保滚动到顶部
+  if (resultContainer.value) {
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+      if (resultContainer.value.parentElement) {
+        resultContainer.value.parentElement.scrollTop = 0;
+      }
+    }, 200);
+  }
+  
+  return () => {
+    clearInterval(progressInterval.value)
+  }
+})
+
 const isJsonResult = computed(() => {
   return typeof props.result === 'object' && props.result !== null
 })
@@ -426,26 +463,6 @@ const processedResult = computed(() => {
 const formattedDate = computed(() => {
   const now = new Date()
   return `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
-})
-
-const formattedResult = computed(() => {
-  if (!props.result || typeof props.result !== 'string') return ''
-  
-  return props.result
-    .split('\n')
-    .map(line => {
-      if (line.startsWith('#')) {
-        return `<h3>${line.replace('#', '')}</h3>`
-      }
-      if (line.startsWith('-')) {
-        return `<li>${line.replace('-', '')}</li>`
-      }
-      if (line.trim() === '') {
-        return '<br>'
-      }
-      return `<p>${line}</p>`
-    })
-    .join('')
 })
 
 function getColorCode(colorStr) {
@@ -482,8 +499,7 @@ const downloadReport = async () => {
     const element = resultContainer.value
     
     const options = {
-      backgroundColor: getComputedStyle(document.documentElement)
-        .getPropertyValue('--color-surface') || '#ffffff',
+      backgroundColor: '#ffffff',
       scrollX: 0,
       scrollY: 0,
       windowWidth: document.documentElement.offsetWidth,
@@ -518,8 +534,7 @@ const shareReport = async () => {
       const element = resultContainer.value
       
       const options = {
-        backgroundColor: getComputedStyle(document.documentElement)
-          .getPropertyValue('--color-surface') || '#ffffff',
+        backgroundColor: '#ffffff',
         scrollX: 0,
         scrollY: 0,
         windowWidth: document.documentElement.offsetWidth,
@@ -584,491 +599,94 @@ const hasUserInfo = computed(() => {
 const hasColorSelection = computed(() => {
   return props.colorSelection && Object.keys(props.colorSelection).length > 0
 })
+
+// 获取服装指导建议
+function getClothingGuidance(colorType) {
+  if (!colorType) return '选择高对比度、纯净色彩；避免柔和或灰暗色调';
+  
+  if (colorType.includes('冬季') || colorType.includes('明亮')) {
+    return '选择高对比度、纯净色彩；避免柔和或灰暗色调';
+  } else if (colorType.includes('夏季') || colorType.includes('柔和')) {
+    return '选择柔和、带灰度的色彩；避免过于鲜艳或强烈对比的色调';
+  } else if (colorType.includes('春季') || colorType.includes('清新')) {
+    return '选择明亮、温暖的色彩；避免过于深沉或冷调的色彩';
+  } else if (colorType.includes('秋季') || colorType.includes('深沉')) {
+    return '选择温暖、带土黄色调的色彩；避免过于鲜艳或冷调的色彩';
+  }
+  
+  return '选择与您的色彩季型和谐的色彩，避免与您的自然特质不协调的色调';
+}
+
+// 获取发色指导建议
+function getHairGuidance(colorType) {
+  if (!colorType) return '选择与您的自然肤色和眼睛相协调的发色，增强您的整体和谐感';
+  
+  if (colorType.includes('冬季')) {
+    return '选择纯净、无黄的深色调；冷调黑色、铂金或冰棕色都是理想选择';
+  } else if (colorType.includes('夏季')) {
+    return '选择带灰度的柔和色调；灰棕色、灰金色或浅灰调都能展现您的优势';
+  } else if (colorType.includes('春季')) {
+    return '选择温暖明亮的色调；金色、蜜糖色或温暖的栗色都能衬托您的特质';
+  } else if (colorType.includes('秋季')) {
+    return '选择富有深度的温暖色调；赤铜色、栗色或深金色都能展现您的魅力';
+  }
+  
+  return '选择与您的色彩季型和谐的发色，避免与您的自然特质不协调的色调';
+}
+
+// 根据色彩类型获取季节特征描述
+function getSeasonTraits(colorType) {
+  if (!colorType) return '未知色彩特征';
+  
+  const traits = {
+    '冬季': '鲜艳 + 冷色调',
+    '夏季': '柔和 + 冷色调',
+    '春季': '鲜艳 + 温色调',
+    '秋季': '柔和 + 温色调',
+    '明亮冬季': '高对比度 + 鲜艳 + 冷色调',
+    '明亮春季': '高对比度 + 鲜艳 + 温色调',
+    '柔和夏季': '低对比度 + 柔和 + 冷色调',
+    '柔和秋季': '低对比度 + 柔和 + 温色调',
+    '清新春季': '明亮 + 温色调',
+    '清爽夏季': '明亮 + 冷色调',
+    '深沉秋季': '深沉 + 温色调',
+    '深邃冬季': '深沉 + 冷色调'
+  };
+  
+  // 遍历traits对象查找匹配的特征
+  for (const season in traits) {
+    if (colorType.includes(season)) {
+      return traits[season];
+    }
+  }
+  
+  return '个性化色彩特征';
+}
+
+// 获取色彩维度位置
+function getHuePosition() {
+  return {
+    left: '20%' // 根据实际色彩特征调整
+  }
+}
+
+function getValuePosition() {
+  return {
+    left: '60%' // 根据实际色彩特征调整
+  }
+}
+
+function getChromaPosition() {
+  return {
+    left: '80%' // 根据实际色彩特征调整
+  }
+}
 </script>
 
 <style scoped>
-.report-view {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  max-height: 100%;
+/* 保留少量必要的自定义样式 */
+.letter-spacing-2 {
+  letter-spacing: 0.2em;
 }
 
-.loading-container,
-.error-container {
-  padding: 3rem 2rem;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-}
-
-.result-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  max-height: 80vh;
-  overflow: hidden;
-}
-
-.result-header {
-  background-color: var(--color-background-soft, #f5f5f5);
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--color-border, #e0e0e0);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.result-content {
-  color: var(--color, #333);
-  line-height: 1.6;
-  padding: 1.5rem;
-  overflow-y: auto;
-  flex: 1;
-  max-height: calc(80vh - 180px);
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 0;
-  padding: 1.5rem;
-  border-top: 1px solid var(--color-border, #e0e0e0);
-  background-color: var(--color-background-soft, #f5f5f5);
-  position: sticky;
-  bottom: 0;
-  z-index: 10;
-}
-
-.spinner {
-  width: 60px;
-  height: 60px;
-  border: 5px solid var(--color-border, #e0e0e0);
-  border-top-color: var(--color-primary, #1a73e8);
-  border-radius: 50%;
-  animation: spin 1.5s linear infinite;
-  margin-bottom: 2rem;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.loading-text {
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: var(--color-text, #333);
-  margin-bottom: 0.5rem;
-}
-
-.loading-subtext {
-  font-size: 0.9rem;
-  color: var(--color-text-secondary, #666);
-  margin-bottom: 2rem;
-}
-
-.loading-progress {
-  width: 80%;
-  max-width: 400px;
-  height: 6px;
-  background-color: var(--color-border, #e0e0e0);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-bar {
-  height: 100%;
-  background-color: var(--color-primary, #1a73e8);
-  border-radius: 3px;
-  transition: width 0.3s ease;
-}
-
-.error-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background-color: #f44336;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
-}
-
-.error-container h3 {
-  margin-bottom: 1rem;
-  color: var(--color-text, #333);
-}
-
-.error-container p {
-  color: var(--color-text-secondary, #666);
-  margin-bottom: 2rem;
-  max-width: 500px;
-}
-
-.error-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-.result-header h2 {
-  text-align: center;
-  color: var(--color-text, #333);
-  margin-bottom: 0.5rem;
-}
-
-.result-meta {
-  text-align: center;
-  color: var(--color-text-secondary, #666);
-  font-size: 0.9rem;
-}
-
-.btn {
-  padding: 0.8rem 1.5rem;
-  border-radius: var(--border-radius, 4px);
-  font-weight: 500;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  border: none;
-}
-
-.btn.primary {
-  background-color: var(--color-primary, #1a73e8);
-  color: white;
-}
-
-.btn.secondary {
-  background-color: var(--color-background-soft, #f5f5f5);
-  color: var(--color-text, #333);
-}
-
-.btn.outline {
-  background-color: transparent;
-  color: var(--color-text, #333);
-  border: 1px solid var(--color-border, #e0e0e0);
-}
-
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.btn.outline:hover {
-  background-color: var(--color-background-soft, #f5f5f5);
-}
-
-.section {
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.section-title {
-  font-size: 1.4rem;
-  color: var(--color-primary, #1a73e8);
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--color-primary, #1a73e8);
-}
-
-.subsection-title {
-  font-size: 1.1rem;
-  color: var(--color-text, #333);
-  margin: 1.2rem 0 0.8rem;
-}
-
-.user-profile-card {
-  display: flex;
-  flex-direction: column;
-}
-
-.user-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.color-type-badge {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: white;
-  background-color: var(--color-primary, #1a73e8);
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  margin-bottom: 1rem;
-}
-
-.analysis-reason {
-  line-height: 1.6;
-  margin-bottom: 1rem;
-}
-
-.user-summary {
-  line-height: 1.6;
-  color: var(--color-text-secondary, #666);
-}
-
-.color-cards {
-  margin-top: 1.5rem;
-}
-
-.color-category {
-  margin-bottom: 1.5rem;
-}
-
-.color-category h5 {
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
-  color: var(--color-text-secondary, #666);
-}
-
-.color-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.8rem;
-  margin-bottom: 1rem;
-}
-
-.color-chip {
-  position: relative;
-  width: 70px;
-  height: 70px;
-  border-radius: 8px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
-}
-
-.color-chip:hover {
-  transform: scale(1.05);
-}
-
-.color-chip.avoid {
-  position: relative;
-}
-
-.color-chip.avoid::before {
-  content: "×";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 2rem;
-  color: red;
-  font-weight: bold;
-}
-
-.color-name {
-  font-size: 0.7rem;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  max-width: 100%;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-  margin-bottom: 4px;
-}
-
-.tabs {
-  display: flex;
-  border-bottom: 1px solid var(--color-border, #e0e0e0);
-  margin-bottom: 1.5rem;
-}
-
-.tab {
-  padding: 0.8rem 1.2rem;
-  font-weight: 500;
-  color: var(--color-text-secondary, #666);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s ease;
-}
-
-.tab.active {
-  color: var(--color-primary, #1a73e8);
-  border-bottom-color: var(--color-primary, #1a73e8);
-}
-
-.tab:hover {
-  color: var(--color-primary, #1a73e8);
-}
-
-.tab-content {
-  min-height: 300px;
-}
-
-.tab-pane {
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.recommendation-category {
-  margin-bottom: 1.5rem;
-}
-
-.style-list, .example-list, .avoid-list {
-  padding-left: 1.2rem;
-  margin-bottom: 1rem;
-}
-
-.style-list li, .example-list li, .avoid-list li {
-  margin-bottom: 0.5rem;
-  line-height: 1.5;
-}
-
-.celebrities {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.celebrity-tag {
-  background-color: var(--color-background-soft, #f5f5f5);
-  color: var(--color-text, #333);
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-}
-
-.warning-icon {
-  color: #f5a623;
-  margin-right: 0.5rem;
-}
-
-.avoid-categories {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1rem;
-}
-
-.hair-color-chip {
-  background-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 100%);
-}
-
-.xiaohongshu-section {
-  background-color: #fafafa;
-  padding: 2rem;
-  text-align: center;
-}
-
-.placeholder-text {
-  color: var(--color-text-secondary, #666);
-  font-style: italic;
-}
-
-.mt-4 {
-  margin-top: 1.5rem;
-}
-
-/* 用户信息和色彩检测样式 */
-.user-info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-top: 0.5rem;
-}
-
-.info-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.info-label {
-  font-weight: 500;
-  margin-right: 0.5rem;
-  min-width: 60px;
-  color: var(--color-text-secondary, #666);
-}
-
-.info-value {
-  color: var(--color-text, #333);
-}
-
-.detected-colors-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  gap: 1rem;
-  margin-top: 0.5rem;
-}
-
-.detected-color-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.color-dot {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-bottom: 0.3rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.color-label {
-  font-size: 0.8rem;
-  color: var(--color-text-secondary, #666);
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .result-container {
-    border-radius: 0;
-    max-height: none;
-  }
-  
-  .tabs {
-    flex-wrap: wrap;
-  }
-  
-  .tab {
-    flex: 1;
-    text-align: center;
-    padding: 0.6rem 0.4rem;
-    font-size: 0.9rem;
-  }
-  
-  .color-chips {
-    justify-content: center;
-  }
-  
-  .actions {
-    flex-direction: column;
-  }
-  
-  .btn {
-    width: 100%;
-  }
-  
-  .avoid-categories {
-    grid-template-columns: 1fr;
-  }
-}
 </style> 

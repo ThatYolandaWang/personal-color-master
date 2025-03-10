@@ -10,7 +10,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="app">
+  <div id="myapp">
     <ThemeToggle />
     <main class="main-content container-fluid p-0">
       <router-view></router-view>
@@ -24,16 +24,15 @@ onMounted(() => {
 html, body {
   height: 100%;
   width: 100%;
-  overflow: auto;
+
 }
 
-#app {
+#myapp {
   min-height: 100vh;
   width: 100%;
   display: flex;
   flex-direction: column;
   transition: background-color var(--transition-speed) ease;
-  overflow-x: hidden;
 }
 
 .main-content {
@@ -42,7 +41,7 @@ html, body {
   justify-content: center;
   align-items: flex-start;
   padding: var(--content-padding, 2rem);
-  overflow: visible;
+
   transition: background-color var(--transition-speed) ease;
 }
 
