@@ -91,7 +91,12 @@ const saveColorSelection = () => {
 // 保存报告数据到会话存储
 const saveReportData = (report) => {
   try {
-    sessionStorage.setItem('colorReport', report)
+    // 如果报告是对象，转换为JSON字符串
+    const reportStr = typeof report === 'object' ? 
+      JSON.stringify(report) : 
+      report
+    
+    sessionStorage.setItem('colorReport', reportStr)
   } catch (e) {
     console.error('无法保存报告数据:', e)
   }
@@ -127,12 +132,20 @@ const submitColors = async () => {
   }, 60000)
   
   try {
+    // 调用analyzeColors API，可能返回JSON对象或文本
     const result = await analyzeColors(colors.value)
-    analysisResult.value = result
+    
+    // 如果返回的是对象，直接使用，否则处理为字符串
+    if (typeof result === 'object' && result !== null) {
+      analysisResult.value = result
+    } else {
+      analysisResult.value = result.toString()
+    }
+    
     analysisError.value = false
     
     // 保存报告数据
-    saveReportData(result)
+    saveReportData(analysisResult.value)
     
     // 始终导航到报告页面
     router.push('/report')

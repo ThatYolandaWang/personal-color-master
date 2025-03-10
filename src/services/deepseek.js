@@ -106,23 +106,62 @@ function generatePrompt(colors) {
     promptPrefix += `，我的昵称是${nickname}`
   }
   
-  return `${promptPrefix}，以下是我的面部色彩分析数据：
+  return `请根据以下用户信息和色彩检测数据，生成一份个人色彩分析报告。
+输出必须严格按照以下 JSON 格式：
 
-1. 皮肤特征：
-    - 前额色值：${colors.forehead}，色调：${foreheadAnalysis.tone}，明度：${foreheadAnalysis.brightness}
-    - 脸颊色值：${colors.cheeks}，色调：${cheeksAnalysis.tone}，明度：${cheeksAnalysis.brightness}
-    - 颈部色值：${colors.neck}，色调：${neckAnalysis.tone}，明度：${neckAnalysis.brightness}
-2. 自然发色：${colors.hair}，色调：${hairAnalysis.tone}，明度：${hairAnalysis.brightness}
-3. 瞳孔颜色：${colors.eyes}，色调：${eyesAnalysis.tone}
-4. 唇色：${colors.lips}，色调：${lipsAnalysis.tone}
+{
+  "colorType": "春/夏/秋/冬季型及子分类",
+  "analysisReason": "色彩类型判定的依据和原因",
+  "userProfile": {
+    "summary": "用户色彩特征总结"
+  },
+  "clothing": {
+    "recommended": ["推荐色彩1", "推荐色彩2", "..."],
+    "styles": ["适合风格1", "适合风格2", "..."],
+    "examples": ["具体单品描述1", "具体单品描述2", "..."]
+  },
+  "makeup": {
+    "foundation": "适合的粉底色号范围",
+    "lipstick": ["适合的唇色1", "适合的唇色2", "..."],
+    "eyeshadow": ["适合的眼影色1", "适合的眼影色2", "..."],
+    "blush": ["适合的腮红色1", "适合的腮红色2", "..."]
+  },
+  "hairColor": {
+    "recommended": ["推荐发色1", "推荐发色2", "..."],
+    "avoid": ["不推荐发色1", "不推荐发色2", "..."]
+  },
+  "avoidZone": {
+    "clothing": ["避免的服装色彩1", "避免的服装色彩2", "..."],
+    "makeup": ["避免的妆容色彩1", "避免的妆容色彩2", "..."],
+    "styles": ["避免的风格1", "避免的风格2", "..."]
+  },
+  "colorCards": {
+    "primary": ["主要配色代码1", "主要配色代码2", "..."],
+    "secondary": ["次要配色代码1", "次要配色代码2", "..."],
+    "accent": ["点缀配色代码1", "点缀配色代码2", "..."]
+  },
+  "celebrities": ["适合该色彩类型的明星1", "明星2", "明星3"]
+}
 
-请根据专业四季色彩理论分析我属于哪个季型（春夏秋冬）或细分季型（如春夏、夏秋等），并详细解释原因。
+用户信息：
+姓名：${nickname || '用户'}
+性别：${gender}
+年龄：${age}
+职业：${occupation || '未知'}
 
-请提供以下建议：
-1. 现在是${season}，请给我5种最适合的服装颜色搭配方案，并列举3位使用此色系的明星穿搭示例
-2. 请推荐3-5种最适合我的饰品颜色和材质
-3. 请给我详细的妆容建议，包括：底妆色号范围、腮红色系、眼影色系、口红色系，并尽量推荐具体产品
-4. 请列出5种我应该避免的颜色，并解释原因`
+色彩检测数据：
+前额肤色：${colors.forehead}，色调：${foreheadAnalysis.tone}，明度：${foreheadAnalysis.brightness}
+脸颊肤色：${colors.cheeks}，色调：${cheeksAnalysis.tone}，明度：${cheeksAnalysis.brightness}
+颈部肤色：${colors.neck}，色调：${neckAnalysis.tone}，明度：${neckAnalysis.brightness}
+唇部颜色：${colors.lips}，色调：${lipsAnalysis.tone}
+发色：${colors.hair}，色调：${hairAnalysis.tone}，明度：${hairAnalysis.brightness}
+眼睛颜色：${colors.eyes}，色调：${eyesAnalysis.tone}
+
+当前季节是${season}，请确保推荐内容适合当前季节。
+请提供专业、个性化的色彩分析和建议，包括详细的服装搭配、妆容和发色建议，以及应该避免的色彩。
+注意：颜色推荐必须包含具体的色彩名称和对应的色彩代码（十六进制格式，如#FF5733）。
+对于明星示例，请优先选择中国或亚洲明星。
+务必以有效的JSON格式返回，不要包含任何额外的说明或注释。`
 }
 
 // 调用DeepSeek API
@@ -165,7 +204,18 @@ async function analyzeColors(colors) {
     }
     
     const data = await response.json()
-    return data.choices[0].message.content
+    const content = data.choices[0].message.content
+    
+    // 尝试解析JSON响应
+    try {
+      // 去除可能的代码标记（如```json和```）
+      const cleanContent = content.replace(/```json|```/g, '').trim()
+      const jsonResult = JSON.parse(cleanContent)
+      return jsonResult
+    } catch (jsonError) {
+      console.warn('无法解析JSON响应，返回原始文本', jsonError)
+      return content // 如果解析失败，返回原始文本
+    }
   } catch (error) {
     console.error('DeepSeek API调用错误:', error)
     if (error.name === 'AbortError') {

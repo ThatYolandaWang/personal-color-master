@@ -7,6 +7,8 @@
       :loading="loading"
       :error="error"
       :errorMessage="errorMessage" 
+      :userInfo="userInfo"
+      :colorSelection="colorSelection"
       @retry="retryAnalysis"
       @regenerate="navigateToColorTest"
       @cancel="navigateToColorTest"
@@ -33,20 +35,48 @@ import ReportView from '../components/ColorTest/ReportView.vue'
 
 const router = useRouter()
 const hasReport = ref(false)
-const reportData = ref('')
+const reportData = ref(null)
 const loading = ref(false)
 const error = ref(false)
 const errorMessage = ref('')
+const userInfo = ref({})
+const colorSelection = ref({})
 
 // 从会话存储中获取报告数据
 onMounted(() => {
   try {
     const savedReport = sessionStorage.getItem('colorReport')
     const savedColors = sessionStorage.getItem('colorSelection')
+    const savedUserInfo = sessionStorage.getItem('userInfo')
     
     if (savedReport) {
-      reportData.value = savedReport
+      // 尝试解析JSON格式的报告
+      try {
+        // 删除可能的代码块标记
+        const cleanContent = savedReport.replace(/```json|```/g, '').trim()
+        reportData.value = JSON.parse(cleanContent)
+      } catch (e) {
+        console.warn('无法解析JSON报告，使用原始文本:', e)
+        reportData.value = savedReport
+      }
+      
       hasReport.value = true
+    }
+    
+    if (savedColors) {
+      try {
+        colorSelection.value = JSON.parse(savedColors)
+      } catch (e) {
+        console.error('无法解析颜色选择数据:', e)
+      }
+    }
+    
+    if (savedUserInfo) {
+      try {
+        userInfo.value = JSON.parse(savedUserInfo)
+      } catch (e) {
+        console.error('无法解析用户信息:', e)
+      }
     }
   } catch (e) {
     console.error('无法获取保存的报告:', e)
