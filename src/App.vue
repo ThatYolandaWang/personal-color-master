@@ -10,50 +10,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="myapp">
-    <ThemeToggle />
-    <main class="main-content container-fluid p-0">
-      <router-view></router-view>
-    </main>
+  <ThemeToggle />
+  <div class="container-fluid">
+    <router-view></router-view>
   </div>
 </template>
 
-<style>
-/* 基础样式已移至 main.css */
-
-html, body {
-  height: 100%;
-  width: 100%;
-
-}
-
-#myapp {
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  transition: background-color var(--transition-speed) ease;
-}
-
-.main-content {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: var(--content-padding, 2rem);
-
-  transition: background-color var(--transition-speed) ease;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  :root {
-    --content-padding: 1rem;
-  }
-  
-  .main-content {
-    padding: var(--content-padding, 1rem);
-    align-items: flex-start;
-  }
-}
-</style>
